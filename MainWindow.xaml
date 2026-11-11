@@ -25,7 +25,8 @@
                     <TextBlock Text="R E S C U E   W H A L E" FontSize="26" FontWeight="Bold" Foreground="{StaticResource Accent}"/>
                     <TextBlock Text="// mouse control terminal" Style="{StaticResource Hint}" FontSize="13" Margin="2,4,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="2" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="14,10" VerticalAlignment="Center" MinWidth="330">
+                <Border Grid.Column="2" Background="Transparent" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="14,10" VerticalAlignment="Center" MinWidth="330"
+                        Cursor="Hand" ToolTip="Click to copy these details" MouseLeftButtonUp="StatusBox_Click">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="LINK ...... " Foreground="{StaticResource Muted}"/>
@@ -38,6 +39,10 @@
                         <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                             <TextBlock Text="MODEL ..... " Foreground="{StaticResource Muted}"/>
                             <TextBlock x:Name="ModelText" Text="--"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                            <TextBlock Text="DEVICE ID . " Foreground="{StaticResource Muted}"/>
+                            <TextBlock x:Name="IdText" Text="--"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                             <TextBlock Text="FIRMWARE .. " Foreground="{StaticResource Muted}"/>

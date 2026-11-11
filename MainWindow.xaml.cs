@@ -153,8 +153,17 @@ public partial class MainWindow : Window
         else { BatteryText.Text = "--"; BatteryText.Foreground = (Brush)FindResource("Muted"); }
 
         ModelText.Text = ready && m!.Model != "" ? m.Model.ToUpperInvariant() : "--";
+        IdText.Text = ready ? $"usb {m!.Link.Title}  model {(m.ModelId != "" ? m.ModelId : "?")}" : m != null ? "usb " + m.Link.Title : "--";
         FirmwareText.Text = !ready ? "--"
             : (m!.MouseFirmware != "" ? "mouse " + m.MouseFirmware : "mouse ?") + (m.ReceiverFirmware != "" ? "  receiver " + m.ReceiverFirmware : "");
+    }
+
+    /// <summary>Copies the status box as text, so it can be pasted into a bug report or a new-mouse report.</summary>
+    void StatusBox_Click(object sender, MouseButtonEventArgs e)
+    {
+        string text = $"LINK ...... {StateText.Text}\nBATTERY ... {BatteryText.Text}\nMODEL ..... {ModelText.Text}\nDEVICE ID . {IdText.Text}\nFIRMWARE .. {FirmwareText.Text}";
+        try { Clipboard.SetText(text); Status("device details copied to the clipboard"); }
+        catch { Status("couldn't reach the clipboard, try again", true); }
     }
 
     void SetState(string brush, string text) { StateText.Foreground = (Brush)FindResource(brush); StateText.Text = text; }

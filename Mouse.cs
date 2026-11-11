@@ -32,6 +32,8 @@ public sealed class Mouse(ILink link)
     public bool Charging { get; private set; }
     /// <summary>Model name: a known model looked up by the mouse's own ID, otherwise whatever the USB device calls itself.</summary>
     public string Model { get; private set; } = "";
+    /// <summary>The mouse's own "customer:model" ID in hex, e.g. "7C:01". This is what identifies a model for <see cref="KnownModels"/>.</summary>
+    public string ModelId { get; private set; } = "";
     public string MouseFirmware { get; private set; } = "";
     public string ReceiverFirmware { get; private set; } = "";
 
@@ -65,7 +67,9 @@ public sealed class Mouse(ILink link)
                    && Enumerable.Range(0, DpiCount).All(i => Quad(ADpi + 4 * i))
                    && Enumerable.Range(0, KeyCount).All(i => Quad(AKeys + 4 * i));
         // The mouse reports a customer ID and model ID. That works over wireless too, where the USB name is only the receiver's.
-        Model = await link.Xfer(CmdModelId) is { } id && KnownModels.TryGetValue((id[0], id[1]), out var known) ? known : link.ProductName;
+        var id = await link.Xfer(CmdModelId);
+        ModelId = id != null ? $"{id[0]:X2}:{id[1]:X2}" : "";
+        Model = id != null && KnownModels.TryGetValue((id[0], id[1]), out var known) ? known : link.ProductName;
         if (await link.Xfer(CmdVersion) is { } v) MouseFirmware = $"{v[0]:X}.{v[1]:X2}";
         if (await link.Xfer(CmdDongleVersion) is { } d && (d[0] | d[1]) != 0) ReceiverFirmware /* a cabled mouse answers with zeros */ = $"{d[0]:X}.{d[1]:X2}";
         await ReadBattery();
