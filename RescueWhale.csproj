@@ -8,5 +8,9 @@
     <RootNamespace>RescueWhale</RootNamespace>
     <AssemblyName>RescueWhale</AssemblyName>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="icon.ico" />
+  </ItemGroup>
 </Project>
