@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
-namespace Mako;
+namespace RescueWhale;
 
 public partial class MainWindow : Window
 {
@@ -21,13 +21,13 @@ public partial class MainWindow : Window
         ("Scroll up", new(0x0B, 1, 0)), ("Scroll down", new(0x0B, 2, 0)), ("Scroll left", new(3, 1, 0)), ("Scroll right", new(3, 2, 0)),
         ("Polling rate: next", new(7, 0, 0)), ("Disabled", new(0, 0, 0)),
     ];
-    static readonly string[] KeyNames = ["Left button", "Right button", "Wheel click", "Side button, rear", "Side button, front", "DPI button"];
+    static readonly string[] KeyNames = ["LEFT", "RIGHT", "WHEEL CLICK", "SIDE REAR", "SIDE FRONT", "DPI BUTTON"];
     static readonly Color[] Palette =
     [
         Color.FromRgb(255, 59, 48), Color.FromRgb(255, 149, 0), Color.FromRgb(255, 214, 10), Color.FromRgb(48, 209, 88),
         Color.FromRgb(100, 210, 255), Color.FromRgb(10, 132, 255), Color.FromRgb(191, 90, 242), Color.FromRgb(255, 255, 255),
     ];
-    const string Custom = "Custom (set in the original app)";
+    const string Custom = "CUSTOM (set in the original app)";
 
     readonly bool _demo;
     readonly string? _shot;
@@ -48,15 +48,17 @@ public partial class MainWindow : Window
         _demo = args.Contains("--demo");
         int at = Array.IndexOf(args, "--shot");
         if (at >= 0 && at + 1 < args.Length) _shot = args[at + 1];
-        int pageAt = Array.IndexOf(args, "--page");
-        int startPage = pageAt >= 0 && pageAt + 1 < args.Length ? int.Parse(args[pageAt + 1]) : 0;
 
         InitializeComponent();
+        Whale.Text = """
+                   .
+                  ":"
+                ___:____     |"\/"|
+              ,'        `.    \  /
+              |  O        \___/  |
+            ~^~^~^~^~^~^~^~^~^~^~^~^~
+            """;
         BuildStaticControls();
-        _loading = true;
-        ((RadioButton)FindName("Nav" + startPage)).IsChecked = true;
-        _loading = false;
-        ShowPage(startPage);
 
         _poll.Tick += async (_, _) => await Tick();
         _dpiSave.Tick += (_, _) => { _dpiSave.Stop(); int dpi = CurrentSliderDpi; Apply(m => m.SetDpi(_sel, dpi), "DPI"); };
@@ -120,45 +122,40 @@ public partial class MainWindow : Window
 
         if (m == null)
         {
-            SetState("Bad", "No mouse found");
-            OfflineTitle.Text = "No mouse found";
-            OfflineBody.Text = "Plug in the mouse's wireless receiver or its USB cable. Mako connects on its own as soon as it appears.";
+            SetState("Bad", "NO DEVICE");
+            OfflineTitle.Text = "!! NO MOUSE FOUND";
+            OfflineBody.Text = "Plug in the mouse's wireless receiver or its USB cable. Rescue Whale connects on its own as soon as it appears.";
         }
         else if (!ready)
         {
-            SetState("Warn", "Mouse asleep or off");
-            OfflineTitle.Text = "Waiting for the mouse";
-            OfflineBody.Text = "The receiver is connected, but the mouse isn't answering. Move it, switch it on, or plug in its cable — Mako picks it up within a couple of seconds.";
+            SetState("Warn", "NO SIGNAL");
+            OfflineTitle.Text = ".. WAITING FOR THE MOUSE";
+            OfflineBody.Text = "The receiver is connected, but the mouse isn't answering. Move it, switch it on, or plug in its cable. Rescue Whale picks it up within a couple of seconds.";
         }
         else if (!m!.Verified)
         {
-            SetState("Warn", "Connected, read-only");
-            Status("This mouse stores its settings in a way Mako doesn't recognize, so nothing will be written to it.", true);
+            SetState("Warn", "ONLINE, READ-ONLY");
+            Status("this mouse stores its settings in a way Rescue Whale doesn't recognize, so nothing will be written to it.", true);
         }
-        else SetState("Accent", _demo ? "Demo mode" : m.ReceiverFirmware == "" ? "Connected by cable" : "Connected wirelessly");
+        else SetState("Accent", _demo ? "DEMO MODE" : m.ReceiverFirmware == "" ? "ONLINE / CABLE" : "ONLINE / WIRELESS");
 
-        bool showBattery = ready && m!.Battery >= 0;
-        BatteryBox.Visibility = showBattery ? Visibility.Visible : Visibility.Collapsed;
-        if (showBattery)
+        if (ready && m!.Battery >= 0)
         {
-            BatteryText.Text = m!.Battery + "%" + (m.Charging ? " · charging" : "");
-            BatteryBar.Width = 164 * m.Battery / 100.0;
-            BatteryBar.Background = (Brush)FindResource(m.Battery <= 15 && !m.Charging ? "Bad" : "Accent");
+            int cells = (int)Math.Round(m.Battery / 10.0);
+            BatteryText.Text = $"[{new string('#', cells)}{new string('.', 10 - cells)}] {m.Battery}%{(m.Charging ? " CHG" : "")}";
+            BatteryText.Foreground = (Brush)FindResource(m.Battery <= 15 && !m.Charging ? "Bad" : "Text");
         }
-        FirmwareText.Visibility = ready ? Visibility.Visible : Visibility.Collapsed;
-        if (ready)
-            FirmwareText.Text = string.Join("\n", new[]
-            {
-                m!.MouseFirmware != "" ? "Mouse firmware " + m.MouseFirmware : null,
-                m.ReceiverFirmware != "" ? "Receiver firmware " + m.ReceiverFirmware : null,
-            }.Where(s => s != null));
+        else { BatteryText.Text = "--"; BatteryText.Foreground = (Brush)FindResource("Muted"); }
+
+        FirmwareText.Text = !ready ? "--"
+            : (m!.MouseFirmware != "" ? "mouse " + m.MouseFirmware : "mouse ?") + (m.ReceiverFirmware != "" ? "  receiver " + m.ReceiverFirmware : "");
     }
 
-    void SetState(string brush, string text) { StateDot.Fill = (Brush)FindResource(brush); StateText.Text = text; }
+    void SetState(string brush, string text) { StateText.Foreground = (Brush)FindResource(brush); StateText.Text = text; }
 
     void Status(string text, bool bad = false)
     {
-        StatusText.Text = text;
+        StatusText.Text = "> " + text + "_";
         StatusText.Foreground = (Brush)FindResource(bad ? "Bad" : "Muted");
     }
 
@@ -167,40 +164,39 @@ public partial class MainWindow : Window
     {
         if (_loading || _m is not { } m) return;
         bool ok = m.Verified && await change(m);
-        if (ok) Status(what + " saved to the mouse.");
-        else if (m.Verified) Status($"Couldn't save {what.ToLowerInvariant()} — the mouse didn't confirm it. Showing what's on the mouse now.", true);
+        if (ok) Status(what.ToLowerInvariant() + " saved to the mouse");
+        else if (m.Verified) Status($"couldn't save {what.ToLowerInvariant()}: the mouse didn't confirm it. showing what's on the mouse now", true);
         if (!ok || refresh) Populate();
     }
 
     // ---------- building controls ----------
     void BuildStaticControls()
     {
-        BuildSeg(RateSeg, "rate", Mouse.Rates.Select(r => (r.Hz >= 1000 ? r.Hz / 1000 + "K Hz" : r.Hz + " Hz", r.Hz)), (m, v) => m.SetPolling(v), "Polling rate");
-        BuildSeg(LodSeg, "lod", [("0.7 mm", 3), ("1 mm", 1), ("2 mm", 2)], (m, v) => m.SetLod(v), "Lift-off distance");
-        BuildSeg(ModeSeg, "mode", [("Low power", 0), ("High performance", 1)], (m, v) => m.SetSensorMode(v), "Sensor mode");
-        BuildSeg(SleepSeg, "sleep", [("10 sec", 1), ("30 sec", 3), ("1 min", 6), ("2 min", 12), ("3 min", 18), ("5 min", 30), ("10 min", 60), ("15 min", 90)], (m, v) => m.SetSleep(v), "Sleep time");
+        BuildSeg(RateSeg, "rate", Mouse.Rates.Select(r => (r.Hz >= 1000 ? r.Hz / 1000 + "K" : r.Hz.ToString(), r.Hz)), (m, v) => m.SetPolling(v), "Polling rate");
+        BuildSeg(LodSeg, "lod", [("0.7 MM", 3), ("1 MM", 1), ("2 MM", 2)], (m, v) => m.SetLod(v), "Lift-off distance");
+        BuildSeg(ModeSeg, "mode", [("LOW POWER", 0), ("HIGH PERF", 1)], (m, v) => m.SetSensorMode(v), "Sensor mode");
+        BuildSeg(SleepSeg, "sleep", [("10S", 1), ("30S", 3), ("1M", 6), ("2M", 12), ("3M", 18), ("5M", 30), ("10M", 60), ("15M", 90)], (m, v) => m.SetSleep(v), "Sleep time");
 
         foreach (int p in new[] { 400, 800, 1600, 3200 })
         {
-            var b = new Button { Style = (Style)FindResource("Ghost"), Content = p.ToString(), Margin = new Thickness(6, 0, 0, 0) };
+            var b = new Button { Style = (Style)FindResource("Ghost"), Content = p.ToString(), Margin = new Thickness(0, 0, 6, 0) };
             b.Click += (_, _) => CommitDpi(p);
             Presets.Children.Add(b);
         }
         foreach (var c in Palette)
         {
-            var dot = new Ellipse { Width = 22, Height = 22, Fill = new SolidColorBrush(c), Margin = new Thickness(0, 0, 8, 0), Cursor = Cursors.Hand, Stroke = (Brush)FindResource("Line"), StrokeThickness = 1 };
+            var dot = new Rectangle { Width = 16, Height = 16, Fill = new SolidColorBrush(c), Margin = new Thickness(0, 0, 5, 0), Cursor = Cursors.Hand };
             dot.MouseLeftButtonUp += (_, _) => Apply(m => m.SetDpiColor(_sel, c.R, c.G, c.B), "Indicator color", true);
             Swatches.Children.Add(dot);
         }
         for (int i = 0; i < Mouse.KeyCount; i++)
         {
             int key = i;
-            var row = new DockPanel { Margin = new Thickness(0, i == 0 ? 0 : 10, 0, 0) };
-            var box = new ComboBox { Width = 290 };
-            DockPanel.SetDock(box, Dock.Right);
+            var row = new DockPanel { Margin = new Thickness(0, i == 0 ? 0 : 7, 0, 0) };
+            var box = new ComboBox();
             box.SelectionChanged += (_, _) => KeyChanged(key, box);
+            row.Children.Add(new TextBlock { Text = KeyNames[i], Width = 150, Style = (Style)FindResource("Label") });
             row.Children.Add(box);
-            row.Children.Add(new TextBlock { Text = KeyNames[i], Style = (Style)FindResource("Label"), VerticalAlignment = VerticalAlignment.Center });
             KeyRows.Children.Add(row);
             _keyBoxes.Add(box);
         }
@@ -237,7 +233,7 @@ public partial class MainWindow : Window
             SwAngle.IsChecked = m.AngleSnap == 1;
             SwRipple.IsChecked = m.Ripple == 1;
             DebounceSlider.Value = Math.Max(0, m.Debounce);
-            DebounceText.Text = Math.Max(0, m.Debounce) + " ms";
+            DebounceText.Text = Math.Max(0, m.Debounce) + " MS";
 
             BuildStages(m);
             DpiBox.Text = m.Dpi(_sel).ToString();
@@ -267,21 +263,21 @@ public partial class MainWindow : Window
             int stage = i;
             var (r, g, b) = m.DpiColor(i);
             bool selected = i == _sel;
-            var number = new TextBlock { Text = m.Dpi(i).ToString("N0"), FontSize = 24, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 6, 0, 0) };
+            var number = new TextBlock { Text = m.Dpi(i).ToString("N0"), FontSize = 20, FontWeight = FontWeights.Bold, Foreground = (Brush)FindResource("Accent"), Margin = new Thickness(0, 4, 0, 0) };
             var head = new StackPanel { Orientation = Orientation.Horizontal };
-            head.Children.Add(new Ellipse { Width = 10, Height = 10, Fill = new SolidColorBrush(Color.FromRgb(r, g, b)), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 7, 0) });
-            head.Children.Add(new TextBlock { Text = "Stage " + (i + 1), Style = (Style)FindResource("Hint") });
+            head.Children.Add(new Rectangle { Width = 9, Height = 9, Fill = new SolidColorBrush(Color.FromRgb(r, g, b)), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 6, 0) });
+            head.Children.Add(new TextBlock { Text = "STAGE " + (i + 1), Style = (Style)FindResource("Hint") });
             var body = new StackPanel();
             body.Children.Add(head);
             body.Children.Add(number);
             body.Children.Add(new TextBlock
             {
-                Text = i == m.DpiIndex ? "In use" : " ", FontSize = 11.5, FontWeight = FontWeights.SemiBold,
-                Foreground = (Brush)FindResource("Accent"), Margin = new Thickness(0, 2, 0, 0),
+                Text = i == m.DpiIndex ? "* ACTIVE" : " ", FontSize = 11, FontWeight = FontWeights.Bold,
+                Foreground = (Brush)FindResource("Warn"), Margin = new Thickness(0, 2, 0, 0),
             });
             var card = new Border
             {
-                Background = (Brush)FindResource("Panel2"), CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 12, 14, 10), Margin = new Thickness(5, 0, 5, 0),
+                Background = (Brush)FindResource("Panel2"), Padding = new Thickness(10, 8, 8, 6), Margin = new Thickness(3, 0, 3, 0),
                 BorderThickness = new Thickness(selected ? 2 : 1), BorderBrush = (Brush)FindResource(selected ? "Accent" : "Line"), Cursor = Cursors.Hand, Child = body,
             };
             card.MouseLeftButtonUp += (_, _) => { _sel = stage; Apply(mm => mm.SetDpiIndex(stage), "Active stage", true); };
@@ -292,9 +288,9 @@ public partial class MainWindow : Window
         {
             var add = new Border
             {
-                CornerRadius = new CornerRadius(10), Margin = new Thickness(5, 0, 5, 0), BorderThickness = new Thickness(1), BorderBrush = (Brush)FindResource("Line"),
+                Margin = new Thickness(3, 0, 3, 0), BorderThickness = new Thickness(1), BorderBrush = (Brush)FindResource("Line"),
                 Background = Brushes.Transparent, Cursor = Cursors.Hand,
-                Child = new TextBlock { Text = "+ Add stage", Foreground = (Brush)FindResource("Muted"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+                Child = new TextBlock { Text = "[+] ADD", Foreground = (Brush)FindResource("Muted"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
             };
             add.MouseLeftButtonUp += (_, _) => { int n = m.DpiCount; _sel = n; Apply(mm => mm.SetDpiCount(n + 1), "New stage", true); };
             Stages.Children.Add(add);
@@ -358,7 +354,7 @@ public partial class MainWindow : Window
         bool leftRemains = Enumerable.Range(0, Mouse.KeyCount).Any(i => (i == key ? fn : m.Key(i)) == leftClick);
         if (!leftRemains)
         {
-            Status("One button has to stay as Left click, or you'd have no way to click.", true);
+            Status("one button has to stay as left click, or you'd have no way to click", true);
             Populate();
             return;
         }
@@ -376,20 +372,9 @@ public partial class MainWindow : Window
 
     void DebounceSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (DebounceText != null) DebounceText.Text = (int)e.NewValue + " ms";
+        if (DebounceText != null) DebounceText.Text = (int)e.NewValue + " MS";
         if (_loading) return;
         _debounceSave.Stop(); _debounceSave.Start();
-    }
-
-    void Nav_Checked(object sender, RoutedEventArgs e)
-    {
-        if (!_loading && IsInitialized) ShowPage(int.Parse((string)((RadioButton)sender).Tag));
-    }
-
-    void ShowPage(int page)
-    {
-        var pages = new[] { Page0, Page1, Page2, Page3 };
-        for (int i = 0; i < pages.Length; i++) pages[i].Visibility = i == page ? Visibility.Visible : Visibility.Collapsed;
     }
 
     void SaveScreenshot(string path)

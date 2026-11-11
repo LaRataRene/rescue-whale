@@ -5,8 +5,8 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Mako</RootNamespace>
-    <AssemblyName>Mako</AssemblyName>
+    <RootNamespace>RescueWhale</RootNamespace>
+    <AssemblyName>RescueWhale</AssemblyName>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
 </Project>

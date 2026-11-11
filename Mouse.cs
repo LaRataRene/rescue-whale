@@ -1,4 +1,4 @@
-namespace Mako;
+namespace RescueWhale;
 
 public readonly record struct KeyFn(byte Type, byte P1, byte P2);
 

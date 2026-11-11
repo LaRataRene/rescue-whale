@@ -2,7 +2,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace Mako;
+namespace RescueWhale;
 
 /// <summary>A transport that exchanges 17-byte command packets with the mouse (or its receiver).</summary>
 public interface ILink : IDisposable
