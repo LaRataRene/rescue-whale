@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     const string Custom = "CUSTOM (set in the original app)";
 
     readonly bool _demo;
+    readonly bool _unlock;   // --unlock: allow writing to a model that isn't in the tested list
     readonly string? _shot;
     readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(2) };
     readonly DispatcherTimer _dpiSave = new() { Interval = TimeSpan.FromMilliseconds(180) };
@@ -45,7 +46,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         var args = Environment.GetCommandLineArgs();
-        _demo = args.Contains("--demo");
+        bool demoUntested = args.Contains("--demo-untested");   // demo of what an untested model looks like
+        _demo = args.Contains("--demo") || demoUntested;
+        _unlock = args.Contains("--unlock") || (_demo && !demoUntested);
         int at = Array.IndexOf(args, "--shot");
         if (at >= 0 && at + 1 < args.Length) _shot = args[at + 1];
 
@@ -96,7 +99,7 @@ public partial class MainWindow : Window
                 foreach (var l in found)
                 {
                     if (_m is { Online: true }) { l.Dispose(); continue; }
-                    var candidate = new Mouse(l);
+                    var candidate = new Mouse(l) { Unlocked = _unlock };
                     bool online = await candidate.CheckOnline();
                     if (online || _link == null) { _link?.Dispose(); _link = l; _m = candidate; }
                     else l.Dispose();
@@ -137,10 +140,12 @@ public partial class MainWindow : Window
             OfflineTitle.Text = ".. WAITING FOR THE MOUSE";
             OfflineBody.Text = "The receiver is connected, but the mouse isn't answering. Move it, switch it on, or plug in its cable. Rescue Whale picks it up within a couple of seconds.";
         }
-        else if (!m!.Verified)
+        else if (!m!.CanWrite)
         {
             SetState("Warn", "ONLINE, READ-ONLY");
-            Status("this mouse stores its settings in a way Rescue Whale doesn't recognize, so nothing will be written to it.", true);
+            Status(m.Verified
+                ? "read-only: this model hasn't been tested yet, so nothing will be written to it. click the status box to copy its details for a report"
+                : "read-only: this mouse stores its settings in a way Rescue Whale doesn't recognize, so nothing will be written to it", true);
         }
         else SetState("Accent", _demo ? "DEMO MODE" : m.ReceiverFirmware == "" ? "ONLINE / CABLE" : "ONLINE / WIRELESS");
 
@@ -178,9 +183,9 @@ public partial class MainWindow : Window
     async void Apply(Func<Mouse, Task<bool>> change, string what, bool refresh = false)
     {
         if (_loading || _m is not { } m) return;
-        bool ok = m.Verified && await change(m);
+        bool ok = m.CanWrite && await change(m);
         if (ok) Status(what.ToLowerInvariant() + " saved to the mouse");
-        else if (m.Verified) Status($"couldn't save {what.ToLowerInvariant()}: the mouse didn't confirm it. showing what's on the mouse now", true);
+        else if (m.CanWrite) Status($"couldn't save {what.ToLowerInvariant()}: the mouse didn't confirm it. showing what's on the mouse now", true);
         if (!ok || refresh) Populate();
     }
 

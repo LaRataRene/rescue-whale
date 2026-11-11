@@ -33,7 +33,7 @@ Every feature listed above has been tested by the author on the Attack Shark X8 
 | USB cable | `3554:FB43` | Works: settings read and save. |
 | 8K wireless receiver | `3554:FB44` | Works: settings read and save. |
 
-Nothing else has been tested. The DPI range, the number of buttons, and the polling rates are currently fixed to the X8 Ultra's values, so another model may show options it doesn't have or miss ones it does.
+Nothing else has been tested, so on any other model the app shows the settings but will not change them. The DPI range, the number of buttons, and the polling rates are currently fixed to the X8 Ultra's values, so another model may show options it doesn't have or miss ones it does.
 
 ## Help add your mouse
 
@@ -44,8 +44,7 @@ I only own an X8 Ultra, so supporting other Attack Shark models depends on peopl
 **What happened.** One of:
 
 - "No mouse found", so the app didn't recognize the device at all. The status box has no device ID in that case, so please look it up in Windows: Device Manager, then your mouse under "Mice and other pointing devices", then Properties, Details, and "Hardware Ids". It looks like `VID_3554&PID_FB43`.
-- Connected but read-only, so the mouse stores its settings in a layout the app doesn't know
-- Connected and editable, in which case please say which settings worked and which didn't
+- Connected but read-only. This is what every untested model should show. Please include the line at the bottom of the window, which says whether the model is simply untested or stores its settings in a layout the app doesn't know. Say also whether the values on screen match what the manufacturer's software shows.
 
 **About the mouse.**
 
@@ -58,7 +57,15 @@ I only own an X8 Ultra, so supporting other Attack Shark models depends on peopl
 
 **Optional but very helpful.** A screenshot of each page of the manufacturer's software for that mouse, so the settings and their allowed values are clear.
 
-If the app shows your mouse as read-only, reporting it is risk-free: in that state Rescue Whale writes nothing to the mouse. If it shows your mouse as editable, be careful with DPI in particular. Different sensors store DPI differently, so a value saved on an untested model may not be the value you picked. The manufacturer's software can set it back.
+Reporting is risk-free. Rescue Whale writes nothing to a model it hasn't been tested on, so running it against your mouse only reads from it.
+
+If you want to go further and try saving settings on an untested model, start the app with `--unlock`:
+
+```
+RescueWhale.exe --unlock
+```
+
+That is at your own risk. Be careful with DPI in particular: different sensors store DPI differently, so a value saved on an untested model may not be the value you picked. The manufacturer's software can set it back. If you do try it, please report which settings worked and which didn't.
 
 If you can write C#, new models are added in `Mouse.cs` (see `KnownModels`), and pull requests are welcome.
 
@@ -81,7 +88,7 @@ RescueWhale.exe --demo
 
 - **Built and tested for the Attack Shark X8 Ultra only.** It has not been run on any other mouse.
 - **Unofficial.** Rescue Whale is an independent project. It is not affiliated with, endorsed by, or supported by Attack Shark or Compx. Product names are trademarks of their owners and are used only to say what the app works with.
-- **Use at your own risk.** The app writes settings to your mouse's memory, and it is provided with no warranty (see the [license](LICENSE)). Before writing, it checks that the settings it read carry the checksums it expects, and goes read-only if they don't. That is a safeguard, not a guarantee, and on a model other than the X8 Ultra a setting could be saved incorrectly.
+- **Use at your own risk.** The app writes settings to your mouse's memory, and it is provided with no warranty (see the [license](LICENSE)). Before writing, it checks that the settings it read carry the checksums it expects, and goes read-only if they don't. That is a safeguard, not a guarantee. On any model other than the X8 Ultra the app is read-only unless you start it with `--unlock`, and with that option a setting could be saved incorrectly.
 - **Not a full replacement.** See [What it does not do](#what-it-does-not-do). Keep the manufacturer's software for those jobs.
 - **How the protocol was worked out.** The commands and memory layout follow what is publicly known about how Compx-based mice communicate, confirmed by querying my own mouse and by reading the configuration files installed with the manufacturer's software. No manufacturer code or files are included here.
 - **AI-assisted.** The code, icon, and documentation were written with Claude, Anthropic's AI, under my direction, and tested by me on my own hardware.

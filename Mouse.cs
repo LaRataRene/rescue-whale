@@ -28,6 +28,11 @@ public sealed class Mouse(ILink link)
     public bool Loaded { get; private set; }
     /// <summary>True when the checksums of what we read line up. Writes are refused otherwise.</summary>
     public bool Verified { get; private set; }
+    /// <summary>True when this exact model is in the tested list. Other models are read-only unless <see cref="Unlocked"/>.</summary>
+    public bool Known { get; private set; }
+    /// <summary>Set to allow writing to an untested model, for people adding support for one.</summary>
+    public bool Unlocked { get; init; }
+    public bool CanWrite => Verified && (Known || Unlocked);
     public int Battery { get; private set; } = -1;
     public bool Charging { get; private set; }
     /// <summary>Model name: a known model looked up by the mouse's own ID, otherwise whatever the USB device calls itself.</summary>
@@ -69,7 +74,8 @@ public sealed class Mouse(ILink link)
         // The mouse reports a customer ID and model ID. That works over wireless too, where the USB name is only the receiver's.
         var id = await link.Xfer(CmdModelId);
         ModelId = id != null ? $"{id[0]:X2}:{id[1]:X2}" : "";
-        Model = id != null && KnownModels.TryGetValue((id[0], id[1]), out var known) ? known : link.ProductName;
+        Known = id != null && KnownModels.ContainsKey((id[0], id[1]));
+        Model = Known ? KnownModels[(id![0], id[1])] : link.ProductName;
         if (await link.Xfer(CmdVersion) is { } v) MouseFirmware = $"{v[0]:X}.{v[1]:X2}";
         if (await link.Xfer(CmdDongleVersion) is { } d && (d[0] | d[1]) != 0) ReceiverFirmware /* a cabled mouse answers with zeros */ = $"{d[0]:X}.{d[1]:X2}";
         await ReadBattery();
@@ -97,7 +103,7 @@ public sealed class Mouse(ILink link)
     // ---- writing ----
     async Task<bool> Write(int addr, params byte[] data)
     {
-        if (!Verified || !Online) return false;
+        if (!CanWrite || !Online) return false;
         if (await link.Xfer(CmdWrite, addr, data) == null) return false;
         data.CopyTo(_f, addr);
         return true;

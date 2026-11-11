@@ -23,10 +23,14 @@ FIRMWARE ..
 **What happened**
 <!-- Keep one and delete the others. -->
 - No mouse found
-- Connected, but read-only
-- Connected and editable
+- Connected, read-only (expected for an untested model)
 
-**If it was editable: what worked and what didn't**
+**The line at the bottom of the window**
+<!-- It says why the mouse is read-only. -->
+
+**Do the values on screen match the manufacturer's software?**
+
+**If you tried `--unlock`: what worked and what didn't**
 
 **About the mouse**
 - Lowest DPI, highest DPI, and DPI step:
