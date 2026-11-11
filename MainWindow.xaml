@@ -1,0 +1,187 @@
+<Window x:Class="Mako.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Mako" Width="1040" Height="700" MinWidth="940" MinHeight="640"
+        Background="{StaticResource Bg}" Foreground="{StaticResource Text}" FontFamily="Segoe UI Variable Text, Segoe UI"
+        WindowStartupLocation="CenterScreen" UseLayoutRounding="True">
+    <Grid x:Name="Root" Background="{StaticResource Bg}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- sidebar -->
+        <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
+            <DockPanel Margin="14,22,14,16">
+                <StackPanel DockPanel.Dock="Top" Margin="12,0,0,22">
+                    <TextBlock Text="Mako" FontSize="22" FontWeight="Bold"/>
+                    <TextBlock Text="Mouse control" Style="{StaticResource Hint}"/>
+                </StackPanel>
+
+                <Border DockPanel.Dock="Bottom" Background="{StaticResource Panel2}" CornerRadius="10" Padding="14,12">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="StateDot" Width="9" Height="9" Fill="{StaticResource Bad}" VerticalAlignment="Center" Margin="0,1,8,0"/>
+                            <TextBlock x:Name="StateText" Text="Looking for mouse…" FontWeight="SemiBold" FontSize="13.5"/>
+                        </StackPanel>
+                        <StackPanel x:Name="BatteryBox" Margin="0,12,0,0" Visibility="Collapsed">
+                            <DockPanel>
+                                <TextBlock Text="Battery" Style="{StaticResource Hint}"/>
+                                <TextBlock x:Name="BatteryText" Style="{StaticResource Hint}" HorizontalAlignment="Right" Foreground="{StaticResource Text}"/>
+                            </DockPanel>
+                            <Border Height="6" CornerRadius="3" Background="{StaticResource Line}" Margin="0,6,0,0">
+                                <Border x:Name="BatteryBar" Height="6" CornerRadius="3" Background="{StaticResource Accent}" HorizontalAlignment="Left" Width="0"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock x:Name="FirmwareText" Style="{StaticResource Hint}" Margin="0,10,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel>
+                    <RadioButton x:Name="Nav0" Style="{StaticResource Nav}" Content="Performance" GroupName="nav" Checked="Nav_Checked" Tag="0"/>
+                    <RadioButton x:Name="Nav1" Style="{StaticResource Nav}" Content="Buttons" GroupName="nav" Checked="Nav_Checked" Tag="1"/>
+                    <RadioButton x:Name="Nav2" Style="{StaticResource Nav}" Content="Sensor" GroupName="nav" Checked="Nav_Checked" Tag="2"/>
+                    <RadioButton x:Name="Nav3" Style="{StaticResource Nav}" Content="Power" GroupName="nav" Checked="Nav_Checked" Tag="3"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- content -->
+        <Grid Grid.Column="1" Margin="30,24,30,14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid x:Name="Pages">
+                <!-- Performance -->
+                <StackPanel x:Name="Page0">
+                    <TextBlock Text="Performance" Style="{StaticResource H1}" Margin="0,0,0,16"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="DPI stages" Style="{StaticResource Label}"/>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,14"
+                                       Text="Click a stage to switch the mouse to it and edit it. The DPI button on the mouse steps through them."/>
+                            <UniformGrid x:Name="Stages" Rows="1" Margin="-5,0"/>
+
+                            <Grid Margin="0,18,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="DpiBox" Width="96" FontWeight="SemiBold" KeyDown="DpiBox_KeyDown" LostFocus="DpiBox_LostFocus"/>
+                                <Slider x:Name="DpiSlider" Grid.Column="1" Minimum="0" Maximum="1000" Margin="16,0" VerticalAlignment="Center" ValueChanged="DpiSlider_ValueChanged"/>
+                                <StackPanel x:Name="Presets" Grid.Column="2" Orientation="Horizontal"/>
+                            </Grid>
+                            <DockPanel Margin="0,14,0,0">
+                                <Button x:Name="RemoveStage" DockPanel.Dock="Right" Style="{StaticResource Ghost}" Content="Remove this stage" Click="RemoveStage_Click"/>
+                                <TextBlock Text="Indicator color" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                <StackPanel x:Name="Swatches" Orientation="Horizontal"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Polling rate" Style="{StaticResource Label}"/>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,14"
+                                       Text="How often the mouse reports its position. Higher feels smoother but uses more battery and CPU."/>
+                            <StackPanel x:Name="RateSeg" Orientation="Horizontal"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Buttons -->
+                <StackPanel x:Name="Page1" Visibility="Collapsed">
+                    <TextBlock Text="Buttons" Style="{StaticResource H1}" Margin="0,0,0,16"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel x:Name="KeyRows"/>
+                    </Border>
+                    <TextBlock Style="{StaticResource Hint}"
+                               Text="Key combos, media keys, rapid-fire and macros can't be edited here yet. Any that are already on the mouse show as “Custom” and are left untouched."/>
+                </StackPanel>
+
+                <!-- Sensor -->
+                <StackPanel x:Name="Page2" Visibility="Collapsed">
+                    <TextBlock Text="Sensor" Style="{StaticResource H1}" Margin="0,0,0,16"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Lift-off distance" Style="{StaticResource Label}"/>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,14" Text="How high you can lift the mouse before it stops tracking."/>
+                            <StackPanel x:Name="LodSeg" Orientation="Horizontal"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <Grid>
+                                <StackPanel Margin="0,0,70,0">
+                                    <TextBlock Text="Motion sync" Style="{StaticResource Label}"/>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,0" Text="Lines sensor readings up with each report for more even tracking, at a tiny latency cost."/>
+                                </StackPanel>
+                                <CheckBox x:Name="SwMotion" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center" Click="Switch_Click"/>
+                            </Grid>
+                            <Border Height="1" Background="{StaticResource Line}" Margin="0,14"/>
+                            <Grid>
+                                <StackPanel Margin="0,0,70,0">
+                                    <TextBlock Text="Angle snapping" Style="{StaticResource Label}"/>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,0" Text="Straightens nearly-straight movements. Useful for drawing lines; most players leave it off."/>
+                                </StackPanel>
+                                <CheckBox x:Name="SwAngle" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center" Click="Switch_Click"/>
+                            </Grid>
+                            <Border Height="1" Background="{StaticResource Line}" Margin="0,14"/>
+                            <Grid>
+                                <StackPanel Margin="0,0,70,0">
+                                    <TextBlock Text="Ripple control" Style="{StaticResource Label}"/>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,0" Text="Smooths out jitter at very high DPI."/>
+                                </StackPanel>
+                                <CheckBox x:Name="SwRipple" Style="{StaticResource Switch}" HorizontalAlignment="Right" VerticalAlignment="Center" Click="Switch_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Sensor mode" Style="{StaticResource Label}"/>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,14"
+                                       Text="Applies at 1000 Hz and below. Above that, or on the cable, the sensor always runs at full performance."/>
+                            <StackPanel x:Name="ModeSeg" Orientation="Horizontal"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Power -->
+                <StackPanel x:Name="Page3" Visibility="Collapsed">
+                    <TextBlock Text="Power" Style="{StaticResource H1}" Margin="0,0,0,16"/>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Sleep after" Style="{StaticResource Label}"/>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,14" Text="How long the mouse sits still before it goes to sleep to save battery."/>
+                            <StackPanel x:Name="SleepSeg" Orientation="Horizontal"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock x:Name="DebounceText" DockPanel.Dock="Right" Style="{StaticResource Label}" Foreground="{StaticResource Accent}"/>
+                                <TextBlock Text="Click response time" Style="{StaticResource Label}"/>
+                            </DockPanel>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,3,0,12"
+                                       Text="Lower is faster. If single clicks start registering as double clicks, raise it until they stop."/>
+                            <Slider x:Name="DebounceSlider" Minimum="0" Maximum="30" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="DebounceSlider_ValueChanged"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- shown when there is no mouse to talk to -->
+            <Border x:Name="Offline" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="14" Padding="34,28" MaxWidth="440">
+                <StackPanel>
+                    <TextBlock x:Name="OfflineTitle" Style="{StaticResource H1}" FontSize="20" TextAlignment="Center"/>
+                    <TextBlock x:Name="OfflineBody" Style="{StaticResource Hint}" FontSize="13.5" TextAlignment="Center" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="StatusText" Grid.Row="1" Style="{StaticResource Hint}" Text="Changes save to the mouse as you make them."/>
+        </Grid>
+    </Grid>
+</Window>
