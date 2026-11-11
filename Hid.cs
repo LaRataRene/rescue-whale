@@ -8,6 +8,8 @@ namespace RescueWhale;
 public interface ILink : IDisposable
 {
     string Title { get; }
+    /// <summary>The product name the device reports over USB, or "" if it reports none.</summary>
+    string ProductName { get; }
     bool Alive { get; }
     /// <summary>Raised when the mouse reports a change made on the device itself (e.g. DPI button pressed).</summary>
     event Action? StatusChanged;
@@ -27,10 +29,11 @@ public sealed class HidLink : ILink
     byte _pendingCmd;
 
     public string Title { get; }
+    public string ProductName { get; }
     public bool Alive { get; private set; } = true;
     public event Action? StatusChanged;
 
-    HidLink(FileStream fs, string title) { _fs = fs; Title = title; _ = ReadLoop(); }
+    HidLink(FileStream fs, string title, string productName) { _fs = fs; Title = title; ProductName = productName; _ = ReadLoop(); }
 
     /// <summary>Opens every matching device: a cabled mouse and its wireless receiver each show up as their own.</summary>
     public static List<HidLink> OpenAll()
@@ -50,7 +53,9 @@ public sealed class HidLink : ILink
             if (h.IsInvalid) continue;
             var pidAt = path.IndexOf("pid_", StringComparison.OrdinalIgnoreCase);
             var pid = pidAt >= 0 ? path.Substring(pidAt + 4, 4).ToUpperInvariant() : "????";
-            links.Add(new HidLink(new FileStream(h, FileAccess.ReadWrite, 0, true), $"3554:{pid}"));
+            var name = new byte[256];
+            string product = HidD_GetProductString(h, name, name.Length) ? System.Text.Encoding.Unicode.GetString(name).Split('\0')[0].Trim() : "";
+            links.Add(new HidLink(new FileStream(h, FileAccess.ReadWrite, 0, true), $"3554:{pid}", product));
         }
         return links;
     }
@@ -120,6 +125,7 @@ public sealed class HidLink : ILink
     [DllImport("hid.dll")] static extern void HidD_GetHidGuid(out Guid g);
     [DllImport("hid.dll")] static extern bool HidD_GetPreparsedData(SafeFileHandle h, out IntPtr p);
     [DllImport("hid.dll")] static extern bool HidD_FreePreparsedData(IntPtr p);
+    [DllImport("hid.dll")] static extern bool HidD_GetProductString(SafeFileHandle h, byte[] buffer, int length);
     [DllImport("hid.dll")] static extern int HidP_GetCaps(IntPtr p, out HIDP_CAPS c);
     [DllImport("setupapi.dll", SetLastError = true)] static extern IntPtr SetupDiGetClassDevs(ref Guid g, IntPtr e, IntPtr h, int flags);
     [DllImport("setupapi.dll", SetLastError = true)] static extern bool SetupDiEnumDeviceInterfaces(IntPtr s, IntPtr d, ref Guid g, int i, ref SP_DEVICE_INTERFACE_DATA data);

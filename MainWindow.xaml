@@ -36,6 +36,10 @@
                             <TextBlock x:Name="BatteryText" Text="--"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                            <TextBlock Text="MODEL ..... " Foreground="{StaticResource Muted}"/>
+                            <TextBlock x:Name="ModelText" Text="--"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
                             <TextBlock Text="FIRMWARE .. " Foreground="{StaticResource Muted}"/>
                             <TextBlock x:Name="FirmwareText" Text="--"/>
                         </StackPanel>

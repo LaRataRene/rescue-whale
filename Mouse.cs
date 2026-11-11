@@ -14,6 +14,10 @@ public sealed class Mouse(ILink link)
     const int APolling = 0x00, ADpiCount = 0x02, ADpiIndex = 0x04, ALod = 0x0A, ADpi = 0x0C, ADpiColor = 0x2C, AKeys = 0x60,
               ADebounce = 0xA9, AMotionSync = 0xAB, ASleep = 0xAD, AAngle = 0xAF, ARipple = 0xB1, ASensorMode = 0xB9, Size = 0xC0;
 
+    const byte CmdModelId = 0x10;
+    /// <summary>Models identified so far, by (customer ID, model ID). Add entries as more mice are tested.</summary>
+    static readonly Dictionary<(byte, byte), string> KnownModels = new() { [(0x7C, 0x01)] = "Attack Shark X8 Ultra" };
+
     public const int MaxStages = 6, KeyCount = 6, MinDpi = 50, MaxDpi = 42000;
     public static readonly (int Hz, byte Code)[] Rates = [(125, 8), (250, 4), (500, 2), (1000, 1), (2000, 0x10), (4000, 0x20), (8000, 0x40)];
 
@@ -26,6 +30,8 @@ public sealed class Mouse(ILink link)
     public bool Verified { get; private set; }
     public int Battery { get; private set; } = -1;
     public bool Charging { get; private set; }
+    /// <summary>Model name: a known model looked up by the mouse's own ID, otherwise whatever the USB device calls itself.</summary>
+    public string Model { get; private set; } = "";
     public string MouseFirmware { get; private set; } = "";
     public string ReceiverFirmware { get; private set; } = "";
 
@@ -58,6 +64,8 @@ public sealed class Mouse(ILink link)
         Verified = Pair(APolling) >= 0 && Pair(ADpiCount) is >= 1 and <= 8 && Pair(ADpiIndex) >= 0
                    && Enumerable.Range(0, DpiCount).All(i => Quad(ADpi + 4 * i))
                    && Enumerable.Range(0, KeyCount).All(i => Quad(AKeys + 4 * i));
+        // The mouse reports a customer ID and model ID. That works over wireless too, where the USB name is only the receiver's.
+        Model = await link.Xfer(CmdModelId) is { } id && KnownModels.TryGetValue((id[0], id[1]), out var known) ? known : link.ProductName;
         if (await link.Xfer(CmdVersion) is { } v) MouseFirmware = $"{v[0]:X}.{v[1]:X2}";
         if (await link.Xfer(CmdDongleVersion) is { } d && (d[0] | d[1]) != 0) ReceiverFirmware /* a cabled mouse answers with zeros */ = $"{d[0]:X}.{d[1]:X2}";
         await ReadBattery();
@@ -142,6 +150,7 @@ public sealed class DemoLink : ILink
 {
     readonly byte[] _f = new byte[0x100];
     public string Title => "Demo";
+    public string ProductName => "Demo Mouse";
     public bool Alive => true;
     public event Action? StatusChanged { add { } remove { } }
 

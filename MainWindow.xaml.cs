@@ -147,6 +147,7 @@ public partial class MainWindow : Window
         }
         else { BatteryText.Text = "--"; BatteryText.Foreground = (Brush)FindResource("Muted"); }
 
+        ModelText.Text = ready && m!.Model != "" ? m.Model.ToUpperInvariant() : "--";
         FirmwareText.Text = !ready ? "--"
             : (m!.MouseFirmware != "" ? "mouse " + m.MouseFirmware : "mouse ?") + (m.ReceiverFirmware != "" ? "  receiver " + m.ReceiverFirmware : "");
     }

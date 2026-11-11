@@ -13,7 +13,7 @@ Rescue Whale is an independent project. It is not affiliated with, endorsed by, 
 - **Buttons:** remap the six buttons to clicks, back/forward, DPI stepping, scrolling, polling-rate switching, or disabled
 - **Sensor:** lift-off distance, sensor mode, motion sync, angle snapping, ripple control
 - **Power:** sleep timer and click response (debounce) time
-- **Status:** connection, battery level, and firmware version
+- **Status:** connection, battery level, model, and firmware version
 
 It finds the mouse on its own, over the USB cable or the wireless receiver, and reconnects when the mouse wakes up.
 
@@ -26,7 +26,7 @@ It finds the mouse on its own, over the USB cable or the wireless receiver, and 
 
 ## Tested hardware
 
-So far it has been tested on a single mouse:
+So far it has been tested on a single mouse, the Attack Shark X8 Ultra:
 
 | Connection | USB ID | Status |
 | --- | --- | --- |
