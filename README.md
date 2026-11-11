@@ -43,7 +43,7 @@ I only own an X8 Ultra, so supporting other Attack Shark models depends on peopl
 
 **What happened.** One of:
 
-- "No mouse found", so the app didn't recognize the device at all
+- "No mouse found", so the app didn't recognize the device at all. The status box has no device ID in that case, so please look it up in Windows: Device Manager, then your mouse under "Mice and other pointing devices", then Properties, Details, and "Hardware Ids". It looks like `VID_3554&PID_FB43`.
 - Connected but read-only, so the mouse stores its settings in a layout the app doesn't know
 - Connected and editable, in which case please say which settings worked and which didn't
 
@@ -58,7 +58,9 @@ I only own an X8 Ultra, so supporting other Attack Shark models depends on peopl
 
 **Optional but very helpful.** A screenshot of each page of the manufacturer's software for that mouse, so the settings and their allowed values are clear.
 
-Please try a model the app shows as read-only before anything else. In that state Rescue Whale writes nothing to the mouse, so reporting it is risk-free. If you can write C#, new models are added in `Mouse.cs` (see `KnownModels`), and pull requests are welcome.
+If the app shows your mouse as read-only, reporting it is risk-free: in that state Rescue Whale writes nothing to the mouse. If it shows your mouse as editable, be careful with DPI in particular. Different sensors store DPI differently, so a value saved on an untested model may not be the value you picked. The manufacturer's software can set it back.
+
+If you can write C#, new models are added in `Mouse.cs` (see `KnownModels`), and pull requests are welcome.
 
 ## Download and run
 
@@ -79,9 +81,9 @@ RescueWhale.exe --demo
 
 - **Built and tested for the Attack Shark X8 Ultra only.** It has not been run on any other mouse.
 - **Unofficial.** Rescue Whale is an independent project. It is not affiliated with, endorsed by, or supported by Attack Shark or Compx. Product names are trademarks of their owners and are used only to say what the app works with.
-- **Use at your own risk.** The app writes settings to your mouse's memory, and it is provided with no warranty (see the [license](LICENSE)). Before writing, it checks that the settings it read carry the checksums it expects, and goes read-only if they don't. That is a safeguard, not a guarantee.
+- **Use at your own risk.** The app writes settings to your mouse's memory, and it is provided with no warranty (see the [license](LICENSE)). Before writing, it checks that the settings it read carry the checksums it expects, and goes read-only if they don't. That is a safeguard, not a guarantee, and on a model other than the X8 Ultra a setting could be saved incorrectly.
 - **Not a full replacement.** See [What it does not do](#what-it-does-not-do). Keep the manufacturer's software for those jobs.
-- **How the protocol was worked out.** By querying my own mouse and reading the configuration files installed with the manufacturer's software. No manufacturer code was copied or decompiled, and none of their files are included here.
+- **How the protocol was worked out.** The commands and memory layout follow what is publicly known about how Compx-based mice communicate, confirmed by querying my own mouse and by reading the configuration files installed with the manufacturer's software. No manufacturer code or files are included here.
 - **AI-assisted.** The code, icon, and documentation were written with Claude, Anthropic's AI, under my direction, and tested by me on my own hardware.
 - **Unsigned program.** The download is not code-signed, so Windows shows a "Windows protected your PC" warning on first run. Choose **More info**, then **Run anyway**.
 - **Privacy.** No telemetry, no network connections, and nothing stored on your PC. Your settings live only on the mouse.
