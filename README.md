@@ -30,8 +30,8 @@ So far it has been tested on a single mouse, the Attack Shark X8 Ultra:
 
 | Connection | USB ID | Status |
 | --- | --- | --- |
-| USB cable | `3554:FB43` | Reads settings correctly. Writing is confirmed for one setting only. |
-| 8K wireless receiver | `3554:FB44` | Receiver is detected. Settings over wireless are untested. |
+| USB cable | `3554:FB43` | Works: settings read and save. |
+| 8K wireless receiver | `3554:FB44` | Works in hands-on use. |
 
 Other Compx-based mice may work. Before it writes anything, Rescue Whale checks that the settings it read from the mouse carry the checksums it expects, and switches to read-only if they don't. If you try it on another model, please open an issue with the result.
 
