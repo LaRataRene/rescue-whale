@@ -32,8 +32,10 @@ public sealed class HidLink : ILink
 
     HidLink(FileStream fs, string title) { _fs = fs; Title = title; _ = ReadLoop(); }
 
-    public static HidLink? TryOpen()
+    /// <summary>Opens every matching device: a cabled mouse and its wireless receiver each show up as their own.</summary>
+    public static List<HidLink> OpenAll()
     {
+        var links = new List<HidLink>();
         foreach (var path in DevicePaths())
         {
             if (!path.Contains($"vid_{Vid:x4}", StringComparison.OrdinalIgnoreCase)) continue;
@@ -48,9 +50,9 @@ public sealed class HidLink : ILink
             if (h.IsInvalid) continue;
             var pidAt = path.IndexOf("pid_", StringComparison.OrdinalIgnoreCase);
             var pid = pidAt >= 0 ? path.Substring(pidAt + 4, 4).ToUpperInvariant() : "????";
-            return new HidLink(new FileStream(h, FileAccess.ReadWrite, 0, true), $"3554:{pid}");
+            links.Add(new HidLink(new FileStream(h, FileAccess.ReadWrite, 0, true), $"3554:{pid}"));
         }
-        return null;
+        return links;
     }
 
     async Task ReadLoop()

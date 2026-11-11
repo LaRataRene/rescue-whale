@@ -59,7 +59,7 @@ public sealed class Mouse(ILink link)
                    && Enumerable.Range(0, DpiCount).All(i => Quad(ADpi + 4 * i))
                    && Enumerable.Range(0, KeyCount).All(i => Quad(AKeys + 4 * i));
         if (await link.Xfer(CmdVersion) is { } v) MouseFirmware = $"{v[0]:X}.{v[1]:X2}";
-        if (await link.Xfer(CmdDongleVersion) is { } d) ReceiverFirmware = $"{d[0]:X}.{d[1]:X2}";
+        if (await link.Xfer(CmdDongleVersion) is { } d && (d[0] | d[1]) != 0) ReceiverFirmware /* a cabled mouse answers with zeros */ = $"{d[0]:X}.{d[1]:X2}";
         await ReadBattery();
         return Loaded = true;
     }

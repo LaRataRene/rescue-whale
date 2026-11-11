@@ -80,11 +80,20 @@ public partial class MainWindow : Window
         _ticking = true;
         try
         {
-            if (_link is not { Alive: true })
+            // Until a mouse is answering, keep rescanning: it may be on the cable, on the receiver, or switch between them.
+            if (_link is not { Alive: true } || _m is not { Online: true })
             {
                 _link?.Dispose();
-                _link = _demo ? new DemoLink() : HidLink.TryOpen();
-                _m = _link == null ? null : new Mouse(_link);
+                _link = null; _m = null;
+                List<ILink> found = _demo ? [new DemoLink()] : [.. HidLink.OpenAll()];
+                foreach (var l in found)
+                {
+                    if (_m is { Online: true }) { l.Dispose(); continue; }
+                    var candidate = new Mouse(l);
+                    bool online = await candidate.CheckOnline();
+                    if (online || _link == null) { _link?.Dispose(); _link = l; _m = candidate; }
+                    else l.Dispose();
+                }
                 if (_link != null) _link.StatusChanged += () => Dispatcher.BeginInvoke(async () => { if (_m is { Online: true } m && await m.Load()) Populate(); });
             }
             if (_m is { } mouse)
@@ -119,14 +128,14 @@ public partial class MainWindow : Window
         {
             SetState("Warn", "Mouse asleep or off");
             OfflineTitle.Text = "Waiting for the mouse";
-            OfflineBody.Text = "The receiver is connected, but the mouse isn't answering. Move it or switch it on — Mako picks it up within a couple of seconds.";
+            OfflineBody.Text = "The receiver is connected, but the mouse isn't answering. Move it, switch it on, or plug in its cable — Mako picks it up within a couple of seconds.";
         }
         else if (!m!.Verified)
         {
             SetState("Warn", "Connected, read-only");
             Status("This mouse stores its settings in a way Mako doesn't recognize, so nothing will be written to it.", true);
         }
-        else SetState("Accent", _demo ? "Demo mode" : "Connected");
+        else SetState("Accent", _demo ? "Demo mode" : m.ReceiverFirmware == "" ? "Connected by cable" : "Connected wirelessly");
 
         bool showBattery = ready && m!.Battery >= 0;
         BatteryBox.Visibility = showBattery ? Visibility.Visible : Visibility.Collapsed;
