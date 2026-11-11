@@ -20,7 +20,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Image Source="icon.ico" Width="80" Height="80" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                <TextBlock x:Name="Logo" FontSize="10" FontWeight="Bold" LineHeight="11" LineStackingStrategy="BlockLineHeight" VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="26,0,0,0">
                     <TextBlock Text="R E S C U E   W H A L E" FontSize="26" FontWeight="Bold" Foreground="{StaticResource Accent}"/>
                     <TextBlock Text="// mouse control terminal" Style="{StaticResource Hint}" FontSize="13" Margin="2,4,0,0"/>

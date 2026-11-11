@@ -50,6 +50,17 @@ public partial class MainWindow : Window
         if (at >= 0 && at + 1 < args.Length) _shot = args[at + 1];
 
         InitializeComponent();
+        Logo.Text = """
+              .                         ..
+             d@b.                  _.:@@@P
+             @@@@b.            _.d@@@@P'
+             '@@@@@b.      _.d@@@@P'
+              '@@@@@@b.__.d@@@P'
+                '@@@@@@@@@@P'
+                  '@@@@@@P
+                    @@@@
+            ~~-~~~~~@@@@~~~~-~~~~~~-~~~~~
+            """;
         BuildStaticControls();
 
         _poll.Tick += async (_, _) => await Tick();
