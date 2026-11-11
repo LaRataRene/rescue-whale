@@ -51,12 +51,12 @@ public partial class MainWindow : Window
 
         InitializeComponent();
         Whale.Text = """
-                   .
-                  ":"
-                ___:____     |"\/"|
-              ,'        `.    \  /
-              |  O        \___/  |
-            ~^~^~^~^~^~^~^~^~^~^~^~^~
+                     . .
+                      Y
+                 .-~~~~~~-.      __
+               .'  o       `-.__/ /
+               `.___________,---'
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~
             """;
         BuildStaticControls();
 

@@ -1,0 +1,38 @@
+name: Release
+
+# Builds both downloads and attaches them to a GitHub release whenever a version tag (v0.1.0, v1.2.3, ...) is pushed.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build standalone exe
+        run: >
+          dotnet publish RescueWhale.csproj -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true -p:DebugType=none -o out/full
+
+      - name: Build small exe (needs the .NET 10 Desktop Runtime)
+        run: >
+          dotnet publish RescueWhale.csproj -c Release -r win-x64 --self-contained false
+          -p:PublishSingleFile=true -p:DebugType=none -o out/small
+
+      - name: Create release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          Copy-Item out/small/RescueWhale.exe out/RescueWhale-small.exe
+          gh release create $env:GITHUB_REF_NAME out/full/RescueWhale.exe out/RescueWhale-small.exe --title "Rescue Whale $env:GITHUB_REF_NAME" --generate-notes
