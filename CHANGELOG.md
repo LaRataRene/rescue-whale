@@ -17,6 +17,10 @@ All notable changes to Rescue Whale are listed here, newest first.
 - The app now keeps a connection to the wireless receiver even when the mouse is on its cable, so the receiver's light can be set either way.
 - Rescue Whale now stores one thing on your PC: your theme choice, in `%AppData%\RescueWhale\theme.txt`. Version 0.1.0 stored nothing. There is still no telemetry and no network use.
 
+### Confirmed working
+
+- **DPI stage colors on the mouse.** The light on the mouse shows each stage's chosen color when you switch DPI stages. The `LED` color picker in `[ DPI STAGES ]` sets those colors.
+
 ### Known limits
 
 - The colors of the receiver's light can't be changed, and it can't follow the DPI stage. On the tested receiver (firmware 2.02) the light kept its built-in colors whatever was stored, and the DPI mode stayed dark, so neither is offered.
