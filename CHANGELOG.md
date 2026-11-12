@@ -6,11 +6,16 @@ All notable changes to Rescue Whale are listed here, newest first.
 
 ### Added
 
-- **Battery gauge.** A battery icon with a vertical level and a large percentage now sits next to the status box. It is green from 50%, amber below that, and red under 20%, and says when the mouse is charging.
+- **Battery gauge.** A battery drawn in text characters, with a vertical level and a large percentage, now sits next to the status box. It is green from 50%, amber below that, and red under 20%, and says when the mouse is charging.
 - **Battery history.** Clicking the gauge or the percentage opens a graph of the battery level over the last 24 hours, 7 days, or 30 days. Time on battery and time charging are drawn in different colors, and stretches with no readings are dashed.
+
+- **Resizable down to half size.** The window can now be made much smaller; below its normal size the whole interface shrinks to fit instead of being cut off.
+- `--size WIDTHxHEIGHT` opens the window at a given size.
 
 ### Changed
 
+- **No Windows title bar.** The minimize, maximize and close buttons are now part of the interface, in a thin strip at the top that also shows the version. Drag the strip, the logo, or the title to move the window; double-click to maximize.
+- The battery line is gone from the status box, since the gauge replaces it. Clicking the box now copies four lines.
 - Rescue Whale now keeps a second file on your PC: battery readings for the history graph, in `%AppData%\RescueWhale\battery.csv`, trimmed to the last 45 days.
 
 ### Known limits

@@ -92,7 +92,15 @@ public partial class MainWindow : Window
                          |::::|
             ~~-~~~~~~~~~~|::::|~~~~~-~~~~~~~-~~~
             """;
+        // --size WIDTHxHEIGHT opens the window at a given size, for checking how it scales
+        int sizeAt = Array.IndexOf(args, "--size");
+        if (sizeAt >= 0 && sizeAt + 1 < args.Length && args[sizeAt + 1].Split('x') is [var sw, var sh] && double.TryParse(sw, out double width) && double.TryParse(sh, out double height))
+        {
+            Width = width;
+            Height = height;
+        }
         BuildStaticControls();
+        StripText.Text = "rescue whale v" + (GetType().Assembly.GetName().Version?.ToString(3) ?? "?");
 
         // battery history: kept on disk for a real mouse, made up in memory for demo mode
         _battery = new BatteryLog(persist: !_demo);
@@ -225,27 +233,20 @@ public partial class MainWindow : Window
         }
         else SetState("Accent", _demo ? "DEMO MODE" : m.ReceiverFirmware == "" ? "ONLINE / CABLE" : "ONLINE / WIRELESS");
 
-        if (ready && m!.Battery >= 0)
-        {
-            int cells = (int)Math.Round(m.Battery / 10.0);
-            BatteryText.Text = $"[{new string('#', cells)}{new string('.', 10 - cells)}] {m.Battery}%{(m.Charging ? " CHG" : "")}";
-            BatteryText.Foreground = (Brush)FindResource(m.Battery <= 15 && !m.Charging ? "Bad" : "Text");
-        }
-        else { BatteryText.Text = "--"; BatteryText.Foreground = (Brush)FindResource("Muted"); }
-
-        // the big gauge next to the status box
+        // the battery gauge next to the status box
         if (ready && m!.Battery >= 0)
         {
             var color = BatteryColor(m.Battery);
-            BatteryFill.Height = Math.Max(2, 50 * m.Battery / 100.0);   // 50 px is the inside height of the gauge
-            BatteryFill.Background = color;
+            BatteryIcon.Text = BatteryArt(m.Battery);
+            BatteryIcon.Foreground = color;
             BatteryPct.Text = m.Battery + "%";
             BatteryPct.Foreground = color;
             BatteryNote.Text = m.Charging ? "CHARGING" : m.Battery < 20 ? "LOW BATTERY" : "BATTERY";
         }
         else
         {
-            BatteryFill.Height = 0;
+            BatteryIcon.Text = BatteryArt(0);
+            BatteryIcon.Foreground = (Brush)FindResource("Muted");
             BatteryPct.Text = "--";
             BatteryPct.Foreground = (Brush)FindResource("Muted");
             BatteryNote.Text = "BATTERY";
@@ -266,6 +267,21 @@ public partial class MainWindow : Window
                    : percent >= 20 ? (_theme.IsLight ? "#B26A00" : "#FFB627")
                    : (_theme.IsLight ? "#B00020" : "#FF5555");
         return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+    }
+
+    /// <summary>
+    /// The battery as text: five rows, each worth 20%. A row is solid (#) when full and dotted (:) when at least half full,
+    /// so the picture moves in steps of 10%. Any charge at all shows at least a dotted row.
+    /// </summary>
+    static string BatteryArt(int percent)
+    {
+        int full = percent / 20;
+        bool half = full < 5 && (percent % 20 >= 10 || (percent > 0 && full == 0));
+        var rows = new List<string> { " .--. " };
+        for (int row = 5; row >= 1; row--)
+            rows.Add(row <= full ? "|####|" : row == full + 1 && half ? "|::::|" : "|    |");
+        rows.Add("'----'");
+        return string.Join("\n", rows);
     }
 
     void Battery_Click(object sender, MouseButtonEventArgs e)
@@ -409,9 +425,48 @@ public partial class MainWindow : Window
     /// <summary>Copies the status box as text, so it can be pasted into a bug report or a new-mouse report.</summary>
     void StatusBox_Click(object sender, MouseButtonEventArgs e)
     {
-        string text = $"LINK ...... {StateText.Text}\nBATTERY ... {BatteryText.Text}\nMODEL ..... {ModelText.Text}\nDEVICE ID . {IdText.Text}\nFIRMWARE .. {FirmwareText.Text}";
+        string text = $"LINK ...... {StateText.Text}\nMODEL ..... {ModelText.Text}\nDEVICE ID . {IdText.Text}\nFIRMWARE .. {FirmwareText.Text}";
         try { Clipboard.SetText(text); Status("device details copied to the clipboard"); }
         catch { Status("couldn't reach the clipboard, try again", true); }
+    }
+
+    // ---------- window: no title bar, own buttons, contents shrink with the window ----------
+    const double DesignWidth = 1150, DesignHeight = 680, StripHeight = 30;
+
+    /// <summary>Below the design size the whole interface is scaled down to fit; above it, the layout just gets more room.</summary>
+    void Root_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        double w = e.NewSize.Width, h = e.NewSize.Height;
+        if (w <= 0 || h <= 0) return;
+        double k = Math.Min(1, Math.Min(w / DesignWidth, h / DesignHeight));
+        Scale.ScaleX = Scale.ScaleY = k;
+        ScaleHost.Width = w / k;
+        ScaleHost.Height = h / k;
+        // keep the drag area matched to the strip, which shrinks with everything else
+        if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is { } chrome) chrome.CaptionHeight = StripHeight * k;
+    }
+
+    void Window_StateChanged(object? sender, EventArgs e)
+    {
+        bool max = WindowState == WindowState.Maximized;
+        // a maximized window without a title bar hangs over the screen edges by the width of its resize border
+        var edge = SystemParameters.WindowResizeBorderThickness;
+        const double pad = 4;   // Windows adds this much padding around the resize border
+        Frame.Margin = max ? new Thickness(edge.Left + pad, edge.Top + pad, edge.Right + pad, edge.Bottom + pad) : new Thickness(0);
+        Frame.BorderThickness = new Thickness(max ? 0 : 1);
+        MaxButton.Content = max ? "[v]" : "[^]";
+        MaxButton.ToolTip = max ? "Restore" : "Maximize";
+    }
+
+    void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+    void Maximize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>Dragging the logo or the title moves the window; double-clicking them maximizes or restores it.</summary>
+    void Drag_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2) Maximize_Click(sender, e);
+        else if (e.ButtonState == MouseButtonState.Pressed) { try { DragMove(); } catch (InvalidOperationException) { } }
     }
 
     // ---------- theme ----------

@@ -44,7 +44,7 @@ Nothing else has been tested, so on any other model the app shows the settings b
 
 I only own an X8 Ultra, so supporting other Attack Shark models depends on people who own them. If you have one, please open an issue using the **New mouse report** template with the following.
 
-**What the app shows.** Run Rescue Whale with the mouse connected and click the status box in the top-right corner. That copies its five lines, ready to paste into the issue. The `DEVICE ID` line is the important part: it holds the USB ID and the mouse's own model ID.
+**What the app shows.** Run Rescue Whale with the mouse connected and click the status box in the top-right corner. That copies its four lines, ready to paste into the issue. The `DEVICE ID` line is the important part: it holds the USB ID and the mouse's own model ID.
 
 **What happened.** One of:
 
