@@ -46,8 +46,9 @@ public partial class MainWindow : Window
     static readonly (string Label, int Mode)[] ReceiverModes = [("OFF", 0), ("POLLING", 1), ("BATTERY", 2), ("LOW BATT ONLY", 3)];
     static readonly string[] TestedReceivers = ["3554:FB44"];
 
+    Theme _theme = Theme.All[0];
     ILink? _link;
-    ILink? _rx;          // the wireless receiver; the same object as _link when the mouse is talking through it
+    ILink? _rx;         // the wireless receiver; the same object as _link when the mouse is talking through it
     byte[]? _rxLed;
     int _rxSearch;
     Mouse? _m;
@@ -63,7 +64,16 @@ public partial class MainWindow : Window
         int at = Array.IndexOf(args, "--shot");
         if (at >= 0 && at + 1 < args.Length) _shot = args[at + 1];
 
+        // --theme NAME tries a theme for this run only; otherwise use the one saved last time
+        int themeAt = Array.IndexOf(args, "--theme");
+        _theme = themeAt >= 0 && themeAt + 1 < args.Length ? Theme.Find(args[themeAt + 1]) : Theme.LoadSaved();
+        _theme.Apply();
+
         InitializeComponent();
+        _loading = true;
+        foreach (var t in Theme.All) ThemeBox.Items.Add(t.Name);
+        ThemeBox.SelectedIndex = Array.IndexOf(Theme.All, _theme);
+        _loading = false;
         Logo.Text = """
               ,.                              _,
              /::\.                       _.-:::/
@@ -82,7 +92,7 @@ public partial class MainWindow : Window
         _poll.Tick += async (_, _) => await Tick();
         _dpiSave.Tick += (_, _) => { _dpiSave.Stop(); int dpi = CurrentSliderDpi; Apply(m => m.SetDpi(_sel, dpi), "DPI"); };
         _debounceSave.Tick += (_, _) => { _debounceSave.Stop(); int ms = (int)DebounceSlider.Value; Apply(m => m.SetDebounce(ms), "Click response time"); };
-        SourceInitialized += (_, _) => { int on = 1; DwmSetWindowAttribute(new WindowInteropHelper(this).Handle, 20, ref on, 4); };
+        SourceInitialized += (_, _) => ApplyTitleBar();
         Loaded += async (_, _) =>
         {
             await Tick();
@@ -237,6 +247,27 @@ public partial class MainWindow : Window
         catch { Status("couldn't reach the clipboard, try again", true); }
     }
 
+    // ---------- theme ----------
+    void ApplyTitleBar()
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+        int dark = _theme.IsLight ? 0 : 1;
+        DwmSetWindowAttribute(hwnd, 20, ref dark, 4);
+    }
+
+    void ThemeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || ThemeBox.SelectedIndex < 0) return;
+        _theme = Theme.All[ThemeBox.SelectedIndex];
+        _theme.Apply();
+        _theme.Save();
+        ApplyTitleBar();
+        Populate();          // the DPI stage cards are built in code, so rebuild them in the new colors
+        UpdateChrome();
+        Status("theme set to " + _theme.Name.ToLowerInvariant());
+    }
+
     void SetState(string brush, string text) { StateText.Foreground = (Brush)FindResource(brush); StateText.Text = text; }
 
     void Status(string text, bool bad = false)
@@ -278,7 +309,8 @@ public partial class MainWindow : Window
         }
         foreach (var c in Palette)
         {
-            var dot = new Rectangle { Width = 16, Height = 16, Fill = new SolidColorBrush(c), Margin = new Thickness(0, 0, 5, 0), Cursor = Cursors.Hand };
+            var dot = new Rectangle { Width = 16, Height = 16, Fill = new SolidColorBrush(c), Margin = new Thickness(0, 0, 5, 0), Cursor = Cursors.Hand, StrokeThickness = 1 };
+            dot.SetResourceReference(Shape.StrokeProperty, "Line");   // an outline, so white stays visible on a light theme
             dot.MouseLeftButtonUp += (_, _) => Apply(m => m.SetDpiColor(_sel, c.R, c.G, c.B), "Indicator color", true);
             Swatches.Children.Add(dot);
         }
