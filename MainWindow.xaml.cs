@@ -39,8 +39,9 @@ public partial class MainWindow : Window
     readonly List<ComboBox> _keyBoxes = [];
 
     // receiver LED: a mode byte followed by three RGB colors, read with one command and written back whole with another.
-    // On the 8K receiver (firmware 2.02) the colors had no visible effect in any mode, and mode 4 (DPI level in the
-    // manufacturer's list) stayed dark, so only the four modes below are offered and the colors are passed through untouched.
+    // On the 8K receiver (firmware 2.02) the colors had no visible effect in any mode (tested by eye in polling and
+    // battery modes: the light kept its built-in colors), and mode 4 (DPI level in the manufacturer's list) stayed dark.
+    // So only the four modes below are offered and the colors are passed through untouched.
     const byte CmdReceiverVersion = 0x1D, CmdSetReceiverLed = 0x14, CmdGetReceiverLed = 0x15;
     static readonly (string Label, int Mode)[] ReceiverModes = [("OFF", 0), ("POLLING", 1), ("BATTERY", 2), ("LOW BATT ONLY", 3)];
     static readonly string[] TestedReceivers = ["3554:FB44"];
