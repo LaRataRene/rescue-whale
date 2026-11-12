@@ -159,6 +159,7 @@ public sealed class Mouse(ILink link)
 public sealed class DemoLink : ILink
 {
     readonly byte[] _f = new byte[0x100];
+    readonly byte[] _led = [3, 0, 255, 0, 255, 255, 0, 255, 0, 0];   // receiver LED: mode, then three RGB colors
     public string Title => "Demo";
     public string ProductName => "Demo Mouse";
     public bool Alive => true;
@@ -187,6 +188,8 @@ public sealed class DemoLink : ILink
             case 0x08: Array.Copy(_f, addr, r, 0, len); break;
             case 0x12: r[0] = 1; r[1] = 0x14; break;
             case 0x1D: r[0] = 2; r[1] = 2; break;
+            case 0x14: data!.CopyTo(_led, 0); _led.CopyTo(r, 0); break;
+            case 0x15: _led.CopyTo(r, 0); break;
         }
         return Task.FromResult<byte[]?>(r);
     }

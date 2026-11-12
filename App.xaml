@@ -38,10 +38,40 @@
                             <Border BorderBrush="{StaticResource Line}" BorderThickness="1" Margin="0,9,0,0" Padding="16,18,16,14">
                                 <ContentPresenter/>
                             </Border>
-                            <Border Background="{StaticResource Bg}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,0,0,0" Padding="6,0">
-                                <ContentPresenter ContentSource="Header" TextElement.Foreground="{StaticResource Warn}" TextElement.FontWeight="Bold"/>
-                            </Border>
+                            <!-- tips for this section, set through Tag and shown by the [i] button in the title -->
+                            <Popup IsOpen="{Binding IsChecked, ElementName=info, Mode=TwoWay}" PlacementTarget="{Binding ElementName=info}" Placement="Bottom"
+                                   VerticalOffset="4" StaysOpen="False" AllowsTransparency="True">
+                                <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Warn}" BorderThickness="1" Padding="14,10" MaxWidth="560" Margin="0,0,8,8">
+                                    <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" Foreground="{StaticResource Text}"
+                                               FontFamily="Cascadia Mono, Cascadia Code, Consolas, Courier New" FontSize="12.5" TextWrapping="Wrap" LineHeight="19"/>
+                                </Border>
+                            </Popup>
+                            <StackPanel Orientation="Horizontal" Background="{StaticResource Bg}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,0,0,0">
+                                <ContentPresenter ContentSource="Header" Margin="6,0,6,0" TextElement.Foreground="{StaticResource Warn}" TextElement.FontWeight="Bold"/>
+                                <ToggleButton x:Name="info" Content="[i]" Margin="0,0,6,0" Cursor="Hand" Focusable="False" ToolTip="Tips for this section">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <TextBlock x:Name="t" Text="[i]" FontWeight="Bold" Foreground="{StaticResource Muted}" Background="Transparent"/>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="t" Property="Foreground" Value="{StaticResource Accent}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="t" Property="Foreground" Value="{StaticResource OnAccent}"/>
+                                                    <Setter TargetName="t" Property="Background" Value="{StaticResource Text}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+                            </StackPanel>
                         </Grid>
+                        <ControlTemplate.Triggers>
+                            <!-- while the tips are open, a click on [i] counts as a click outside them, which closes them -->
+                            <Trigger SourceName="info" Property="IsChecked" Value="True">
+                                <Setter TargetName="info" Property="IsHitTestVisible" Value="False"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>

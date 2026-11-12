@@ -38,7 +38,17 @@ public partial class MainWindow : Window
     readonly List<TextBlock> _stageNumbers = [];
     readonly List<ComboBox> _keyBoxes = [];
 
+    // receiver LED: a mode byte followed by three RGB colors, read with one command and written back whole with another.
+    // On the 8K receiver (firmware 2.02) the colors had no visible effect in any mode, and mode 4 (DPI level in the
+    // manufacturer's list) stayed dark, so only the four modes below are offered and the colors are passed through untouched.
+    const byte CmdReceiverVersion = 0x1D, CmdSetReceiverLed = 0x14, CmdGetReceiverLed = 0x15;
+    static readonly (string Label, int Mode)[] ReceiverModes = [("OFF", 0), ("POLLING", 1), ("BATTERY", 2), ("LOW BATT ONLY", 3)];
+    static readonly string[] TestedReceivers = ["3554:FB44"];
+
     ILink? _link;
+    ILink? _rx;          // the wireless receiver; the same object as _link when the mouse is talking through it
+    byte[]? _rxLed;
+    int _rxSearch;
     Mouse? _m;
     bool _loading, _ticking;
     int _sel;
@@ -78,7 +88,7 @@ public partial class MainWindow : Window
             _poll.Start();
             if (_shot != null) { await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle); SaveScreenshot(_shot); Close(); }
         };
-        Closed += (_, _) => _link?.Dispose();
+        Closed += (_, _) => { _link?.Dispose(); _rx?.Dispose(); };
     }
 
     [DllImport("dwmapi.dll")] static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
@@ -91,20 +101,40 @@ public partial class MainWindow : Window
         try
         {
             // Until a mouse is answering, keep rescanning: it may be on the cable, on the receiver, or switch between them.
-            if (_link is not { Alive: true } || _m is not { Online: true })
+            bool rescan = _link is not { Alive: true } || _m is not { Online: true };
+            // With the mouse on its cable the receiver is a separate device; look for it now and then in case it gets plugged in later.
+            if (!rescan && _rx is not { Alive: true } && ++_rxSearch % 5 == 0) rescan = true;
+            if (rescan)
             {
-                _link?.Dispose();
-                _link = null; _m = null;
-                List<ILink> found = _demo ? [new DemoLink()] : [.. HidLink.OpenAll()];
+                bool keepMouse = _link is { Alive: true } && _m is { Online: true };
+                if (!keepMouse) { if (_rx != _link) _link?.Dispose(); _link = null; _m = null; }
+                if (_rx != _link) _rx?.Dispose();
+                _rx = null;
+                List<ILink> found = _demo ? [keepMouse ? _link! : new DemoLink()] : [.. HidLink.OpenAll()];
                 foreach (var l in found)
                 {
-                    if (_m is { Online: true }) { l.Dispose(); continue; }
-                    var candidate = new Mouse(l) { Unlocked = _unlock };
-                    bool online = await candidate.CheckOnline();
-                    if (online || _link == null) { _link?.Dispose(); _link = l; _m = candidate; }
-                    else l.Dispose();
+                    bool used = false;
+                    if (await l.Xfer(CmdReceiverVersion) is { } v && (v[0] | v[1]) != 0 && _rx == null)
+                    {
+                        // if the mouse is already talking through this receiver, reuse that connection
+                        if (keepMouse && _m!.ReceiverFirmware != "") { _rx = _link; }
+                        else { _rx = l; used = true; }
+                    }
+                    if (!keepMouse && _m is not { Online: true })
+                    {
+                        var candidate = new Mouse(l) { Unlocked = _unlock };
+                        bool online = await candidate.CheckOnline();
+                        if (online || _link == null)
+                        {
+                            if (_link != null && _link != _rx) _link.Dispose();
+                            _link = l; _m = candidate; used = true;
+                        }
+                    }
+                    if (!used && l != _link) l.Dispose();
                 }
-                if (_link != null) _link.StatusChanged += () => Dispatcher.BeginInvoke(async () => { if (_m is { Online: true } m && await m.Load()) Populate(); });
+                if (!keepMouse && _link != null) _link.StatusChanged += () => Dispatcher.BeginInvoke(async () => { if (_m is { Online: true } m && await m.Load()) Populate(); });
+                _rxLed = _rx == null ? null : await _rx.Xfer(CmdGetReceiverLed);
+                PopulateReceiver();
             }
             if (_m is { } mouse)
             {
@@ -124,8 +154,10 @@ public partial class MainWindow : Window
     {
         var m = _m;
         bool ready = m is { Online: true, Loaded: true };
-        Pages.IsEnabled = ready;
-        Pages.Opacity = ready ? 1 : 0.18;
+        // everything except the receiver's own box needs a mouse to talk to
+        foreach (var column in new[] { ColLeft, ColRight })
+            foreach (UIElement box in column.Children)
+                if (box != RxBox) { box.IsEnabled = ready; box.Opacity = ready ? 1 : 0.18; }
         Offline.Visibility = ready ? Visibility.Collapsed : Visibility.Visible;
 
         if (m == null)
@@ -163,6 +195,39 @@ public partial class MainWindow : Window
             : (m!.MouseFirmware != "" ? "mouse " + m.MouseFirmware : "mouse ?") + (m.ReceiverFirmware != "" ? "  receiver " + m.ReceiverFirmware : "");
     }
 
+    // ---------- receiver LED ----------
+    void PopulateReceiver()
+    {
+        RxBox.Visibility = _rxLed != null ? Visibility.Visible : Visibility.Collapsed;
+        if (_rxLed == null) return;
+        bool was = _loading;
+        _loading = true;
+        PickSeg(RxSeg, _rxLed[0]);
+        _loading = was;
+    }
+
+    void SetReceiverMode(int mode)
+    {
+        if (!_loading) WriteReceiver(d => d[0] = (byte)mode, "receiver led");
+    }
+
+    /// <summary>Changes the receiver's LED setting. It is one 10-byte block, so every change sends the whole block back.</summary>
+    async void WriteReceiver(Action<byte[]> change, string what)
+    {
+        if (_rx is not { Alive: true } rx || _rxLed is not { } current) return;
+        if (!_unlock && !TestedReceivers.Contains(rx.Title))
+        {
+            Status("read-only: this receiver hasn't been tested yet, so nothing will be written to it", true);
+            PopulateReceiver();
+            return;
+        }
+        var data = (byte[])current.Clone();
+        change(data);
+        if (await rx.Xfer(CmdSetReceiverLed, 0, data) != null) { _rxLed = data; Status(what + " saved to the receiver"); }
+        else Status($"couldn't save the {what}: the receiver didn't confirm it", true);
+        PopulateReceiver();
+    }
+
     /// <summary>Copies the status box as text, so it can be pasted into a bug report or a new-mouse report.</summary>
     void StatusBox_Click(object sender, MouseButtonEventArgs e)
     {
@@ -196,6 +261,13 @@ public partial class MainWindow : Window
         BuildSeg(LodSeg, "lod", [("0.7 MM", 3), ("1 MM", 1), ("2 MM", 2)], (m, v) => m.SetLod(v), "Lift-off distance");
         BuildSeg(ModeSeg, "mode", [("LOW POWER", 0), ("HIGH PERF", 1)], (m, v) => m.SetSensorMode(v), "Sensor mode");
         BuildSeg(SleepSeg, "sleep", [("10S", 1), ("30S", 3), ("1M", 6), ("2M", 12), ("3M", 18), ("5M", 30), ("10M", 60), ("15M", 90)], (m, v) => m.SetSleep(v), "Sleep time");
+
+        foreach (var (label, mode) in ReceiverModes)
+        {
+            var rb = new RadioButton { Style = (Style)FindResource("Seg"), Content = label, Tag = mode, GroupName = "rxled" };
+            rb.Checked += (_, _) => SetReceiverMode(mode);
+            RxSeg.Children.Add(rb);
+        }
 
         foreach (int p in new[] { 400, 800, 1600, 3200 })
         {

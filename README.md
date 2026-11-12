@@ -13,6 +13,8 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 - **Buttons:** remap the six buttons to clicks, back/forward, DPI stepping, scrolling, polling-rate switching, or disabled
 - **Sensor:** lift-off distance, sensor mode, motion sync, angle snapping, ripple control
 - **Power:** sleep timer and click response (debounce) time
+- **Receiver light:** what the wireless receiver's light shows: nothing, the polling rate, the battery level, or a low-battery warning only
+- **Tips:** an `[i]` button on every section explains its settings
 - **Status:** connection, battery level, model, device ID, and firmware version
 
 It finds the mouse on its own, over the USB cable or the wireless receiver, and reconnects when the mouse wakes up.
@@ -20,7 +22,8 @@ It finds the mouse on its own, over the USB cable or the wireless receiver, and 
 ## What it does not do
 
 - Macros, key combinations, media keys, and rapid-fire. Any already on the mouse show as `CUSTOM` and are left untouched.
-- Lighting effects and the receiver's LED
+- Lighting effects on the mouse
+- Changing the colors of the receiver's light, or having it follow the DPI stage. On the tested receiver (firmware 2.02) neither had any visible effect, so they are left out.
 - Profiles
 - Pairing and firmware updates. Use the manufacturer's software for those.
 

@@ -1,7 +1,7 @@
 <Window x:Class="RescueWhale.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Rescue Whale" Icon="icon.ico" Width="1200" Height="720" MinWidth="1120" MinHeight="710"
+        Title="Rescue Whale" Icon="icon.ico" Width="1200" Height="700" MinWidth="1120" MinHeight="690"
         Background="{StaticResource Bg}" Foreground="{StaticResource Text}"
         FontFamily="Cascadia Mono, Cascadia Code, Consolas, Courier New"
         WindowStartupLocation="CenterScreen" UseLayoutRounding="True">
@@ -60,8 +60,9 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel>
-                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ DPI STAGES ]">
+                <StackPanel x:Name="ColLeft">
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ DPI STAGES ]"
+                                            Tag="&gt; click a stage to make it active and edit it. the dpi button on the mouse steps through your stages.&#10;&gt; type a value and press enter, drag the bar, or use a preset. 50 to 26,000 in steps of 50, then steps of 100 up to 42,000.&#10;&gt; most players settle between 400 and 1,600. fewer stages means fewer accidental switches, so delete the ones you don't use.&#10;&gt; led sets the color tied to the selected stage.">
                         <StackPanel>
                             <UniformGrid x:Name="Stages" Rows="1" Margin="-3,0"/>
                             <Grid Margin="0,12,0,0">
@@ -82,21 +83,21 @@
                                 <TextBlock Text="  LED " Style="{StaticResource Label}" Foreground="{StaticResource Muted}"/>
                                 <StackPanel x:Name="Swatches" Orientation="Horizontal" VerticalAlignment="Center"/>
                             </DockPanel>
-                            <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0" Text="click a stage to make it active and edit it. the dpi button on the mouse steps through them."/>
                         </StackPanel>
                     </HeaderedContentControl>
 
-                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ POLLING RATE ]">
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ POLLING RATE ]"
+                                            Tag="&gt; how many times per second the mouse reports its position.&#10;&gt; 1k is plenty for most games and easiest on the battery.&#10;&gt; 2k to 8k can feel smoother on high-refresh monitors, but use more battery and cpu.">
                         <StackPanel>
                             <DockPanel>
                                 <TextBlock Text="HZ" Width="150" Style="{StaticResource Label}"/>
                                 <StackPanel x:Name="RateSeg" Orientation="Horizontal"/>
                             </DockPanel>
-                            <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0" Text="reports per second. higher is smoother but costs battery and cpu."/>
                         </StackPanel>
                     </HeaderedContentControl>
 
-                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ POWER ]">
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ POWER ]"
+                                            Tag="&gt; sleep after: how long the mouse sits still before it sleeps. shorter saves battery. it wakes on a move or a click.&#10;&gt; click response: the debounce time. lower is faster. if single clicks start registering twice, raise it one step at a time.">
                         <StackPanel>
                             <DockPanel>
                                 <TextBlock Text="SLEEP AFTER" Width="150" Style="{StaticResource Label}"/>
@@ -107,20 +108,31 @@
                                 <TextBlock x:Name="DebounceText" DockPanel.Dock="Right" Width="52" TextAlignment="Right" Style="{StaticResource Label}" Foreground="{StaticResource Accent}"/>
                                 <Slider x:Name="DebounceSlider" Minimum="0" Maximum="30" IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center" ValueChanged="DebounceSlider_ValueChanged"/>
                             </DockPanel>
-                            <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0" Text="lower click response is faster. if single clicks start doubling, raise it."/>
+                        </StackPanel>
+                    </HeaderedContentControl>
+
+                    <!-- lives on the wireless receiver, not the mouse, so it works even while the mouse is asleep or on its cable -->
+                    <HeaderedContentControl x:Name="RxBox" Style="{StaticResource Box}" Header="[ RECEIVER LED ]" Visibility="Collapsed"
+                                            Tag="&gt; the light on the wireless receiver. this is stored on the receiver, so it works while the mouse is asleep or on its cable.&#10;&gt; polling: a color for the current polling rate.&#10;&gt; battery: a color for the mouse's battery level.&#10;&gt; low batt only: stays dark until the battery runs low.&#10;&gt; the colors themselves are built into the receiver and can't be changed.">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Text="SHOWS" Width="150" Style="{StaticResource Label}"/>
+                                <StackPanel x:Name="RxSeg" Orientation="Horizontal"/>
+                            </DockPanel>
                         </StackPanel>
                     </HeaderedContentControl>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2">
-                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ BUTTONS ]">
+                <StackPanel x:Name="ColRight" Grid.Column="2">
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ BUTTONS ]"
+                                            Tag="&gt; pick what each button does. one button always has to stay left click.&#10;&gt; dpi: next stage loops through your dpi stages. polling rate: next steps through the polling rates.&#10;&gt; combos, media keys, rapid-fire and macros set in the manufacturer's software show as custom and are left untouched.">
                         <StackPanel>
                             <StackPanel x:Name="KeyRows"/>
-                            <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0" Text="combos, media keys, rapid-fire and macros show as CUSTOM and are left untouched."/>
                         </StackPanel>
                     </HeaderedContentControl>
 
-                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ SENSOR ]">
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ SENSOR ]"
+                                            Tag="&gt; lift-off: how high you can lift the mouse before it stops tracking. lower suits players who lift and reposition a lot.&#10;&gt; sensor mode: applies at 1k and below. above that, or on the cable, the sensor always runs at full performance.&#10;&gt; motion sync: lines sensor readings up with each report for more even tracking, at a tiny latency cost.&#10;&gt; angle snap: straightens nearly-straight movements. handy for drawing lines, usually off for games.&#10;&gt; ripple control: smooths out jitter at very high dpi.">
                         <StackPanel>
                             <DockPanel>
                                 <TextBlock Text="LIFT-OFF" Width="150" Style="{StaticResource Label}"/>
@@ -133,17 +145,14 @@
                             <DockPanel Margin="0,9,0,0">
                                 <TextBlock Text="MOTION SYNC" Width="150" Style="{StaticResource Label}"/>
                                 <CheckBox x:Name="SwMotion" Style="{StaticResource Switch}" HorizontalAlignment="Left" Click="Switch_Click"/>
-                                <TextBlock Text="  even tracking, tiny latency cost" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
                             </DockPanel>
                             <DockPanel Margin="0,9,0,0">
                                 <TextBlock Text="ANGLE SNAP" Width="150" Style="{StaticResource Label}"/>
                                 <CheckBox x:Name="SwAngle" Style="{StaticResource Switch}" HorizontalAlignment="Left" Click="Switch_Click"/>
-                                <TextBlock Text="  straightens near-straight moves" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
                             </DockPanel>
                             <DockPanel Margin="0,9,0,0">
                                 <TextBlock Text="RIPPLE CONTROL" Width="150" Style="{StaticResource Label}"/>
                                 <CheckBox x:Name="SwRipple" Style="{StaticResource Switch}" HorizontalAlignment="Left" Click="Switch_Click"/>
-                                <TextBlock Text="  smooths jitter at very high dpi" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
                             </DockPanel>
                         </StackPanel>
                     </HeaderedContentControl>
@@ -151,7 +160,7 @@
             </Grid>
 
             <!-- shown when there is no mouse to talk to -->
-            <Border x:Name="Offline" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center"
+            <Border x:Name="Offline" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,70,0,0"
                     Background="{StaticResource Bg}" BorderBrush="{StaticResource Warn}" BorderThickness="1" Padding="30,22" MaxWidth="520">
                 <StackPanel>
                     <TextBlock x:Name="OfflineTitle" FontSize="18" FontWeight="Bold" Foreground="{StaticResource Warn}" TextAlignment="Center"/>
