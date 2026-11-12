@@ -98,7 +98,7 @@ RescueWhale.exe --demo
 - **AI-assisted.** The code, icon, and documentation were written with Claude, Anthropic's AI, under my direction, and tested by me on my own hardware.
 - **Unsigned program.** The download is not code-signed, so Windows shows a "Windows protected your PC" warning on first run. Choose **More info**, then **Run anyway**.
 - **Privacy.** No telemetry and no network connections. Your mouse settings live only on the mouse. The one thing kept on your PC is your theme choice, in a small text file at `%AppData%\RescueWhale\theme.txt`.
-- **Early software.** This is version 0.1.0 by a single author. Expect rough edges, and please report what you find.
+- **Early software.** This is an early version by a single author. Expect rough edges, and please report what you find. Changes between versions are listed in the [changelog](CHANGELOG.md).
 
 ## Build from source
 
