@@ -46,6 +46,11 @@ public partial class MainWindow : Window
     static readonly (string Label, int Mode)[] ReceiverModes = [("OFF", 0), ("POLLING", 1), ("BATTERY", 2), ("LOW BATT ONLY", 3)];
     static readonly string[] TestedReceivers = ["3554:FB44"];
 
+    static readonly (string Label, int Hours)[] BatteryRanges = [("24H", 24), ("7D", 168), ("30D", 720)];
+    BatteryLog _battery = new(false);
+    int _batteryHours = 24;
+    DateTime _batteryClosedAt;
+
     Theme _theme = Theme.All[0];
     ILink? _link;
     ILink? _rx;         // the wireless receiver; the same object as _link when the mouse is talking through it
@@ -89,6 +94,16 @@ public partial class MainWindow : Window
             """;
         BuildStaticControls();
 
+        // battery history: kept on disk for a real mouse, made up in memory for demo mode
+        _battery = new BatteryLog(persist: !_demo);
+        if (_demo) _battery.FillDemo();
+        foreach (var (label, hours) in BatteryRanges)
+        {
+            var rb = new RadioButton { Style = (Style)FindResource("Seg"), Content = label, GroupName = "battrange", IsChecked = hours == _batteryHours };
+            rb.Checked += (_, _) => { _batteryHours = hours; if (BatteryPopup.IsOpen) DrawBatteryGraph(); };
+            BatteryRange.Children.Add(rb);
+        }
+
         _poll.Tick += async (_, _) => await Tick();
         _dpiSave.Tick += (_, _) => { _dpiSave.Stop(); int dpi = CurrentSliderDpi; Apply(m => m.SetDpi(_sel, dpi), "DPI"); };
         _debounceSave.Tick += (_, _) => { _debounceSave.Stop(); int ms = (int)DebounceSlider.Value; Apply(m => m.SetDebounce(ms), "Click response time"); };
@@ -97,7 +112,24 @@ public partial class MainWindow : Window
         {
             await Tick();
             _poll.Start();
-            if (_shot != null) { await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle); SaveScreenshot(_shot); Close(); }
+            if (_shot != null)
+            {
+                await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                SaveScreenshot(Root, _shot);
+                // --battery also captures the history dropdown, which lives in its own pop-up window
+                if (args.Contains("--battery"))
+                {
+                    int rangeAt = Array.IndexOf(args, "--battery");
+                    if (rangeAt + 1 < args.Length && int.TryParse(args[rangeAt + 1], out int hours))
+                        for (int i = 0; i < BatteryRanges.Length; i++)
+                            if (BatteryRanges[i].Hours == hours) ((RadioButton)BatteryRange.Children[i]).IsChecked = true;
+                    DrawBatteryGraph();
+                    BatteryPopup.IsOpen = true;
+                    await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    SaveScreenshot(BatteryPanel, System.IO.Path.ChangeExtension(_shot, null) + "-battery.png");
+                }
+                Close();
+            }
         };
         Closed += (_, _) => { _link?.Dispose(); _rx?.Dispose(); };
     }
@@ -154,6 +186,7 @@ public partial class MainWindow : Window
                 {
                     if (!wasLoaded) { if (await mouse.Load()) { _sel = mouse.DpiIndex; Populate(); } }
                     else await mouse.ReadBattery();
+                    if (!_demo && mouse.Loaded && mouse.Battery >= 0) _battery.Add(mouse.Battery, mouse.Charging);
                 }
             }
             UpdateChrome();
@@ -200,10 +233,144 @@ public partial class MainWindow : Window
         }
         else { BatteryText.Text = "--"; BatteryText.Foreground = (Brush)FindResource("Muted"); }
 
+        // the big gauge next to the status box
+        if (ready && m!.Battery >= 0)
+        {
+            var color = BatteryColor(m.Battery);
+            BatteryFill.Height = Math.Max(2, 50 * m.Battery / 100.0);   // 50 px is the inside height of the gauge
+            BatteryFill.Background = color;
+            BatteryPct.Text = m.Battery + "%";
+            BatteryPct.Foreground = color;
+            BatteryNote.Text = m.Charging ? "CHARGING" : m.Battery < 20 ? "LOW BATTERY" : "BATTERY";
+        }
+        else
+        {
+            BatteryFill.Height = 0;
+            BatteryPct.Text = "--";
+            BatteryPct.Foreground = (Brush)FindResource("Muted");
+            BatteryNote.Text = "BATTERY";
+        }
+        if (BatteryPopup.IsOpen) DrawBatteryGraph();
+
         ModelText.Text = ready && m!.Model != "" ? m.Model.ToUpperInvariant() : "--";
         IdText.Text = ready ? $"usb {m!.Link.Title}  model {(m.ModelId != "" ? m.ModelId : "?")}" : m != null ? "usb " + m.Link.Title : "--";
         FirmwareText.Text = !ready ? "--"
             : (m!.MouseFirmware != "" ? "mouse " + m.MouseFirmware : "mouse ?") + (m.ReceiverFirmware != "" ? "  receiver " + m.ReceiverFirmware : "");
+    }
+
+    // ---------- battery ----------
+    /// <summary>Green from half full, amber below that, red under 20%. Darker shades on a light theme so they stay readable.</summary>
+    Brush BatteryColor(int percent)
+    {
+        string hex = percent >= 50 ? (_theme.IsLight ? "#1E8E3E" : "#30D158")
+                   : percent >= 20 ? (_theme.IsLight ? "#B26A00" : "#FFB627")
+                   : (_theme.IsLight ? "#B00020" : "#FF5555");
+        return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
+    }
+
+    void Battery_Click(object sender, MouseButtonEventArgs e)
+    {
+        // a click on the gauge while the graph is open first closes it (it counts as a click outside); don't reopen it straight away
+        if ((DateTime.UtcNow - _batteryClosedAt).TotalMilliseconds < 300) return;
+        DrawBatteryGraph();
+        BatteryPopup.IsOpen = true;
+    }
+
+    void BatteryPopup_Closed(object? sender, EventArgs e) => _batteryClosedAt = DateTime.UtcNow;
+
+    /// <summary>Draws battery level against time for the chosen range: solid while on battery, highlighted while charging, dashed across gaps.</summary>
+    void DrawBatteryGraph()
+    {
+        var g = BatteryGraph;
+        g.Children.Clear();
+        double left = 46, right = 10, top = 8, bottom = 24;
+        double plotW = g.Width - left - right, plotH = g.Height - top - bottom;
+        var now = DateTime.Now;
+        var from = now.AddHours(-_batteryHours);
+        Brush line = (Brush)FindResource("Line"), muted = (Brush)FindResource("Muted"), text = (Brush)FindResource("Text"), warn = (Brush)FindResource("Warn");
+        double X(DateTime t) => left + plotW * (t - from).TotalSeconds / (now - from).TotalSeconds;
+        double Y(double percent) => top + plotH * (1 - percent / 100);
+
+        void Label(string s, double x, double y, bool rightAlign = false, bool center = false)
+        {
+            var tb = new TextBlock { Text = s, FontSize = 11, Foreground = muted };
+            tb.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(tb, rightAlign ? x - tb.DesiredSize.Width : center ? x - tb.DesiredSize.Width / 2 : x);
+            Canvas.SetTop(tb, y);
+            g.Children.Add(tb);
+        }
+
+        // level grid
+        foreach (int p in new[] { 0, 25, 50, 75, 100 })
+        {
+            g.Children.Add(new Line { X1 = left, X2 = left + plotW, Y1 = Y(p), Y2 = Y(p), Stroke = line, StrokeThickness = 1, StrokeDashArray = p is 0 or 100 ? null : [2, 4] });
+            Label(p + "%", left - 6, Y(p) - 7, rightAlign: true);
+        }
+
+        // time grid: every 6 hours, every day, or every 5 days
+        var step = _batteryHours <= 24 ? TimeSpan.FromHours(6) : _batteryHours <= 168 ? TimeSpan.FromDays(1) : TimeSpan.FromDays(5);
+        string format = _batteryHours <= 24 ? "h tt" : _batteryHours <= 168 ? "ddd" : "M/d";
+        var tick = from.Date;
+        while (tick <= from) tick += step;
+        for (; tick < now; tick += step)
+        {
+            g.Children.Add(new Line { X1 = X(tick), X2 = X(tick), Y1 = top, Y2 = top + plotH, Stroke = line, StrokeThickness = 1, StrokeDashArray = [2, 4] });
+            Label(tick.ToString(format), X(tick), top + plotH + 5, center: true);
+        }
+
+        // readings in range, plus the one just before it so the line starts at the left edge
+        var all = _battery.Samples;
+        int first = 0;
+        while (first < all.Count && all[first].Time < from) first++;
+        var pts = all.Skip(Math.Max(0, first - 1)).ToList();
+        int inRange = all.Count - first;
+
+        if (inRange < 2)
+        {
+            var none = new TextBlock { Text = "not enough history in this range yet.\nit builds up while rescue whale is open and the mouse is awake.", Foreground = muted, TextAlignment = TextAlignment.Center };
+            none.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(none, left + (plotW - none.DesiredSize.Width) / 2);
+            Canvas.SetTop(none, top + (plotH - none.DesiredSize.Height) / 2);
+            g.Children.Add(none);
+        }
+        else
+        {
+            for (int i = 1; i < pts.Count; i++)
+            {
+                var a = pts[i - 1];
+                var b = pts[i];
+                double aPercent = a.Percent;
+                var aTime = a.Time;
+                if (aTime < from)   // starts off the left edge: begin where the line crosses it
+                {
+                    aPercent += (b.Percent - a.Percent) * (from - a.Time).TotalSeconds / (b.Time - a.Time).TotalSeconds;
+                    aTime = from;
+                }
+                bool gap = b.Time - a.Time > TimeSpan.FromMinutes(30);
+                bool charging = b.Charging || b.Percent > a.Percent;
+                g.Children.Add(new Line
+                {
+                    X1 = X(aTime), Y1 = Y(aPercent), X2 = X(b.Time), Y2 = Y(b.Percent),
+                    Stroke = gap ? muted : charging ? warn : text, StrokeThickness = gap ? 1 : 2, StrokeDashArray = gap ? [3, 3] : null,
+                });
+            }
+            var last = pts[^1];
+            var dot = new Rectangle { Width = 7, Height = 7, Fill = last.Charging ? warn : text };
+            Canvas.SetLeft(dot, X(last.Time) - 3.5);
+            Canvas.SetTop(dot, Y(last.Percent) - 3.5);
+            g.Children.Add(dot);
+        }
+
+        // summary and legend
+        var shown = all.Skip(first).ToList();
+        var lastCharge = all.LastOrDefault(s => s.Charging);
+        BatteryStats.Text = shown.Count == 0 ? "no readings in this range"
+            : $"NOW {shown[^1].Percent}%   LOW {shown.Min(s => s.Percent)}%   HIGH {shown.Max(s => s.Percent)}%"
+              + (lastCharge.Time != default ? $"   LAST ON CHARGE {lastCharge.Time:MMM d, h:mm tt}".ToUpperInvariant() : "");
+        BatteryLegend.Inlines.Clear();
+        BatteryLegend.Inlines.Add(new System.Windows.Documents.Run("■ on battery   ") { Foreground = text });
+        BatteryLegend.Inlines.Add(new System.Windows.Documents.Run("■ charging   ") { Foreground = warn });
+        BatteryLegend.Inlines.Add(new System.Windows.Documents.Run("- - no readings (app closed or mouse asleep)") { Foreground = muted });
     }
 
     // ---------- receiver LED ----------
@@ -502,10 +669,10 @@ public partial class MainWindow : Window
         _debounceSave.Stop(); _debounceSave.Start();
     }
 
-    void SaveScreenshot(string path)
+    static void SaveScreenshot(FrameworkElement element, string path)
     {
-        var bmp = new RenderTargetBitmap((int)Root.ActualWidth, (int)Root.ActualHeight, 96, 96, PixelFormats.Pbgra32);
-        bmp.Render(Root);
+        var bmp = new RenderTargetBitmap((int)element.ActualWidth, (int)element.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+        bmp.Render(element);
         var enc = new PngBitmapEncoder();
         enc.Frames.Add(BitmapFrame.Create(bmp));
         using var fs = File.Create(path);

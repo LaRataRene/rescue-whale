@@ -16,6 +16,7 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 - **Receiver light:** what the wireless receiver's light shows: nothing, the polling rate, the battery level, or a low-battery warning only
 - **Tips:** an `[i]` button on every section explains its settings
 - **Themes:** eight color schemes, five of them pure black for OLED screens
+- **Battery:** a gauge and percentage, colored by level. Click it for a graph of how the battery drained and recharged over the last day, week, or month.
 - **Status:** connection, battery level, model, device ID, and firmware version
 
 It finds the mouse on its own, over the USB cable or the wireless receiver, and reconnects when the mouse wakes up.
@@ -97,7 +98,7 @@ RescueWhale.exe --demo
 - **How the protocol was worked out.** The commands and memory layout follow what is publicly known about how Compx-based mice communicate, confirmed by querying my own mouse and by reading the configuration files installed with the manufacturer's software. No manufacturer code or files are included here.
 - **AI-assisted.** The code, icon, and documentation were written with Claude, Anthropic's AI, under my direction, and tested by me on my own hardware.
 - **Unsigned program.** The download is not code-signed, so Windows shows a "Windows protected your PC" warning on first run. Choose **More info**, then **Run anyway**.
-- **Privacy.** No telemetry and no network connections. Your mouse settings live only on the mouse. The one thing kept on your PC is your theme choice, in a small text file at `%AppData%\RescueWhale\theme.txt`.
+- **Privacy.** No telemetry and no network connections. Your mouse settings live only on the mouse. Two small files are kept on your PC, both in `%AppData%\RescueWhale`: `theme.txt` holds your theme choice, and `battery.csv` holds battery readings (time, level, charging or not) for the history graph, trimmed to the last 45 days. Delete either at any time.
 - **Early software.** This is an early version by a single author. Expect rough edges, and please report what you find. Changes between versions are listed in the [changelog](CHANGELOG.md).
 
 ## Build from source

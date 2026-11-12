@@ -19,13 +19,47 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
+                <!-- battery: a level gauge and percentage; click either for the history graph -->
+                <Border x:Name="BatteryWidget" Grid.Column="2" Background="Transparent" Cursor="Hand" VerticalAlignment="Center" Margin="0,0,22,0" Padding="8,4"
+                        ToolTip="Click for battery history" MouseLeftButtonUp="Battery_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel VerticalAlignment="Center">
+                            <Border Width="12" Height="4" Background="{DynamicResource Muted}" HorizontalAlignment="Center"/>
+                            <Border Width="30" Height="58" BorderBrush="{DynamicResource Muted}" BorderThickness="2" Padding="2">
+                                <Border x:Name="BatteryFill" VerticalAlignment="Bottom" Height="0"/>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Center" Margin="12,0,0,0">
+                            <TextBlock x:Name="BatteryPct" Text="--" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource Muted}"/>
+                            <TextBlock x:Name="BatteryNote" Text="BATTERY" FontSize="11" Foreground="{DynamicResource Muted}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Popup x:Name="BatteryPopup" PlacementTarget="{Binding ElementName=BatteryWidget}" Placement="Bottom" HorizontalOffset="-250" VerticalOffset="4"
+                       StaysOpen="False" AllowsTransparency="True" Closed="BatteryPopup_Closed">
+                    <Border x:Name="BatteryPanel" Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Warn}" BorderThickness="1" Padding="16,12" Margin="0,0,8,8"
+                            TextElement.FontFamily="Cascadia Mono, Cascadia Code, Consolas, Courier New" TextElement.Foreground="{DynamicResource Text}">
+                        <StackPanel Width="620">
+                            <DockPanel>
+                                <StackPanel x:Name="BatteryRange" DockPanel.Dock="Right" Orientation="Horizontal"/>
+                                <TextBlock Text="[ BATTERY HISTORY ]" Foreground="{DynamicResource Warn}" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <Canvas x:Name="BatteryGraph" Width="620" Height="230" Margin="0,12,0,0" ClipToBounds="True"/>
+                            <TextBlock x:Name="BatteryStats" Margin="0,8,0,0"/>
+                            <TextBlock x:Name="BatteryLegend" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
+
                 <TextBlock x:Name="Logo" FontSize="9.5" FontWeight="Bold" LineHeight="10.5" LineStackingStrategy="BlockLineHeight" VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="26,0,0,0">
                     <TextBlock Text="R E S C U E   W H A L E" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource Accent}"/>
                     <TextBlock Text="// mouse control terminal" Style="{StaticResource Hint}" FontSize="13" Margin="2,4,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="2" Background="Transparent" BorderBrush="{DynamicResource Line}" BorderThickness="1" Padding="14,10" VerticalAlignment="Center" MinWidth="330"
+                <Border Grid.Column="3" Background="Transparent" BorderBrush="{DynamicResource Line}" BorderThickness="1" Padding="14,10" VerticalAlignment="Center" MinWidth="330"
                         Cursor="Hand" ToolTip="Click to copy these details" MouseLeftButtonUp="StatusBox_Click">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal">
