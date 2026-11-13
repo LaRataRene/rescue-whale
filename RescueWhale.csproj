@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <Product>Rescue Whale</Product>
     <Description>Open-source settings app for Compx-based gaming mice</Description>
     <UseWPF>true</UseWPF>
