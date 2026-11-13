@@ -81,18 +81,34 @@ public partial class MainWindow : Window
         foreach (var t in Theme.All) ThemeBox.Items.Add(t.Name);
         ThemeBox.SelectedIndex = Array.IndexOf(Theme.All, _theme);
         _loading = false;
+        // A whale's tail mid-swing, flinging drops off the high fluke, with a life ring around it at the waterline.
+        // Two layers with identical spacing: the tail and water, then the ring on top in its own color.
         Logo.Text = """
-              ,.                              _,
-             /::\.                       _.-:::/
-             |::::`.                 _.-:::::/'
-             `.:::::`-.          _.-::::::.-'
-               `.:::::::`-.__.-::::::::.-'
-                 `-.::::::::::::::::.-'
-                    `-.:::::::::.-'
-                       `.:::::.'
-                         |::::|
-                         |::::|
-            ~~-~~~~~~~~~~|::::|~~~~~-~~~~~~~-~~~
+                                        _.-.
+              ,.                    _.-:::/   '
+             /::\.              _.-:::::.'  .
+             |::::`._       _.-::::::.-'
+             `.::::::`-.._.-:::::::.-'     '
+               `-.:::::::::::::::.-'
+                  `-.:::::::::.-'
+                     `.::::::.'
+                       \:::::\
+                        \:::::\
+            ~~-~~~~      \:::::\    ~~~-~~~~~~~
+            """;
+        LogoBuoy.Text = """
+
+
+
+
+
+
+
+
+
+                     .=#       #=.
+                   (#=           =#)
+                    `=#=#=#=#=#=#='
             """;
         // --size WIDTHxHEIGHT opens the window at a given size, for checking how it scales
         int sizeAt = Array.IndexOf(args, "--size");

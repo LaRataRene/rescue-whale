@@ -81,8 +81,12 @@
                 </Popup>
 
                 <!-- the logo and title also drag the window, like a title bar would -->
-                <TextBlock x:Name="Logo" FontSize="9.5" FontWeight="Bold" LineHeight="10.5" LineStackingStrategy="BlockLineHeight" VerticalAlignment="Center"
-                           Background="Transparent" MouseLeftButtonDown="Drag_MouseDown"/>
+                <Grid VerticalAlignment="Center" Background="Transparent" MouseLeftButtonDown="Drag_MouseDown">
+                    <TextBlock x:Name="Logo" FontSize="9.5" FontWeight="Bold" LineHeight="10.5" LineStackingStrategy="BlockLineHeight"/>
+                    <!-- the life ring is a second layer of the same drawing, so it can have its own color -->
+                    <TextBlock x:Name="LogoBuoy" FontSize="9.5" FontWeight="Bold" LineHeight="10.5" LineStackingStrategy="BlockLineHeight"
+                               Foreground="{DynamicResource Warn}" IsHitTestVisible="False"/>
+                </Grid>
                 <StackPanel x:Name="TitlePanel" Grid.Column="1" VerticalAlignment="Center" Margin="26,0,0,0" Background="Transparent" MouseLeftButtonDown="Drag_MouseDown">
                     <TextBlock x:Name="TitleText" Text="R E S C U E   W H A L E" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource Accent}"/>
                     <TextBlock Text="// mouse control terminal" Style="{StaticResource Hint}" FontSize="13" Margin="2,4,0,0"/>

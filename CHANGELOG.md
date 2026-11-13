@@ -2,6 +2,12 @@
 
 All notable changes to Rescue Whale are listed here, newest first.
 
+## Unreleased
+
+### Changed
+
+- **New logo.** The whale's tail is redrawn mid-swing, flinging drops off its high fluke, with a life ring around it at the waterline. The icon matches.
+
 ## 0.3.0 - November 12, 2026
 
 ### Added
