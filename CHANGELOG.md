@@ -20,11 +20,11 @@ All notable changes to Rescue Whale are listed here, newest first.
 
 ### Fixed
 
-- **DPI stage colors that didn't show on the mouse.** The color picker offered soft shades that the mouse's light displayed wrongly or not at all. It now offers pure colors (red, orange, yellow, green, cyan, blue, magenta, white), which the light shows properly. Stage colors picked in an earlier version need to be picked again.
+- **DPI stage colors that didn't show on the mouse.** The color picker offered soft shades that the mouse's light displayed wrongly or not at all. It now offers the five colors the light really can show: red, green, light blue, blue, and magenta. Stage colors picked in an earlier version need to be picked again.
 
 ### Known limits
 
-- The mouse's light shows white as a pale blue.
+- The mouse's DPI light can't show orange, yellow, or white. It drops its red whenever green is also lit, so orange and yellow come out green and white comes out light blue. Those colors are no longer offered.
 - Battery history is only recorded while Rescue Whale is open and the mouse is awake. Anything else shows as a gap, and the history starts from the first time this version runs.
 
 ## 0.2.0 - November 12, 2026

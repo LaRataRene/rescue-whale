@@ -125,7 +125,7 @@
 
                 <StackPanel x:Name="ColLeft">
                     <HeaderedContentControl Style="{StaticResource Box}" Header="[ DPI STAGES ]"
-                                            Tag="&gt; click a stage to make it active and edit it. the dpi button on the mouse steps through your stages.&#10;&gt; type a value and press enter, drag the bar, or use a preset. 50 to 26,000 in steps of 50, then steps of 100 up to 42,000.&#10;&gt; most players settle between 400 and 1,600. fewer stages means fewer accidental switches, so delete the ones you don't use.&#10;&gt; led sets the color tied to the selected stage.">
+                                            Tag="&gt; click a stage to make it active and edit it. the dpi button on the mouse steps through your stages.&#10;&gt; type a value and press enter, drag the bar, or use a preset. 50 to 26,000 in steps of 50, then steps of 100 up to 42,000.&#10;&gt; most players settle between 400 and 1,600. fewer stages means fewer accidental switches, so delete the ones you don't use.&#10;&gt; led sets the color the mouse's light shows for the selected stage. the five on offer are the ones the light can show; it can't do orange, yellow or white.">
                         <StackPanel>
                             <UniformGrid x:Name="Stages" Rows="1" Margin="-3,0"/>
                             <Grid Margin="0,12,0,0">

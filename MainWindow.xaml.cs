@@ -24,10 +24,10 @@ public partial class MainWindow : Window
     static readonly string[] KeyNames = ["LEFT", "RIGHT", "WHEEL CLICK", "SIDE REAR", "SIDE FRONT", "DPI BUTTON"];
     static readonly Color[] Palette =
     [
-        // Pure, fully saturated colors only. The mouse's DPI light showed pure red, green and blue correctly, but in-between
-        // shades (a softer red, a softer green) came out wrong, so every channel here is either full on or off, plus one orange.
-        Color.FromRgb(255, 0, 0), Color.FromRgb(255, 128, 0), Color.FromRgb(255, 255, 0), Color.FromRgb(0, 255, 0),
-        Color.FromRgb(0, 255, 255), Color.FromRgb(0, 0, 255), Color.FromRgb(255, 0, 255), Color.FromRgb(255, 255, 255),
+        // The five colors the X8 Ultra's DPI light can actually show, found by eye: red, green, light blue, blue, magenta.
+        // The light drops its red whenever green is also on, so orange and yellow come out green and white comes out
+        // light blue. Softer in-between shades came out wrong too, so every channel is either full on or off.
+        Color.FromRgb(255, 0, 0), Color.FromRgb(0, 255, 0), Color.FromRgb(0, 255, 255), Color.FromRgb(0, 0, 255), Color.FromRgb(255, 0, 255),
     ];
     const string Custom = "CUSTOM (set in the original app)";
 

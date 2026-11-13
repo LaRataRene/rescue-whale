@@ -8,7 +8,7 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 
 ## What it does
 
-- **DPI:** up to six stages from 50 to 42,000, each with an indicator color
+- **DPI:** up to six stages from 50 to 42,000, each with an indicator color (red, green, light blue, blue, or magenta, the five the mouse's light can show)
 - **Polling rate:** 125 Hz to 8,000 Hz
 - **Buttons:** remap the six buttons to clicks, back/forward, DPI stepping, scrolling, polling-rate switching, or disabled
 - **Sensor:** lift-off distance, sensor mode, motion sync, angle snapping, ripple control
