@@ -171,7 +171,7 @@ public sealed class DemoLink : ILink
         void Q(int a, byte x, byte y, byte z) { _f[a] = x; _f[a + 1] = y; _f[a + 2] = z; _f[a + 3] = (byte)(0x55 - x - y - z); }
         P(0x00, 1); P(0x02, 4); P(0x04, 1); P(0x0A, 1); P(0xA9, 4); P(0xAB, 1); P(0xAD, 6); P(0xAF, 0); P(0xB1, 0); P(0xB9, 1);
         int[] dpi = [800, 1600, 3200, 6400, 12000, 26000];
-        (byte, byte, byte)[] col = [(255, 59, 48), (48, 209, 88), (10, 132, 255), (255, 214, 10), (100, 210, 255), (191, 90, 242)];
+        (byte, byte, byte)[] col = [(255, 0, 0), (0, 255, 0), (0, 255, 255), (0, 0, 255), (255, 0, 255), (255, 0, 0)];
         for (int i = 0; i < 6; i++) { Mouse.EncodeDpi(dpi[i]).CopyTo(_f, 0x0C + 4 * i); Q(0x2C + 4 * i, col[i].Item1, col[i].Item2, col[i].Item3); }
         (byte, byte)[] keys = [(1, 1), (1, 2), (1, 4), (1, 8), (1, 16), (2, 1)];
         for (int i = 0; i < 6; i++) Q(0x60 + 4 * i, keys[i].Item1, keys[i].Item2, 0);

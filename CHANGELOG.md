@@ -2,7 +2,7 @@
 
 All notable changes to Rescue Whale are listed here, newest first.
 
-## Unreleased
+## 0.3.0 - November 12, 2026
 
 ### Added
 

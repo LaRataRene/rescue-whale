@@ -6,6 +6,23 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 
 ![Rescue Whale](preview.png)
 
+<details>
+<summary><b>More screenshots:</b> tall layout, themes, battery history</summary>
+
+**Tall layout.** Make the window narrow and tall and the boxes rearrange into a single column.
+
+<img src="screenshots/tall.png" alt="Rescue Whale in its tall single-column layout" width="420">
+
+**Themes.** Six of the eight: OLED green, OLED amber, OLED ice, OLED mono, OLED red, and paper.
+
+![Six Rescue Whale themes](screenshots/themes.png)
+
+**Battery history.** Click the battery gauge for a graph of how the battery drained and recharged. This one shows the app's demo data.
+
+![Battery history graph](screenshots/battery-history.png)
+
+</details>
+
 ## What it does
 
 - **DPI:** up to six stages from 50 to 42,000, each with an indicator color (red, green, light blue, blue, or magenta, the five the mouse's light can show)
