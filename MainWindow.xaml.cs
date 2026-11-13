@@ -24,8 +24,10 @@ public partial class MainWindow : Window
     static readonly string[] KeyNames = ["LEFT", "RIGHT", "WHEEL CLICK", "SIDE REAR", "SIDE FRONT", "DPI BUTTON"];
     static readonly Color[] Palette =
     [
-        Color.FromRgb(255, 59, 48), Color.FromRgb(255, 149, 0), Color.FromRgb(255, 214, 10), Color.FromRgb(48, 209, 88),
-        Color.FromRgb(100, 210, 255), Color.FromRgb(10, 132, 255), Color.FromRgb(191, 90, 242), Color.FromRgb(255, 255, 255),
+        // Pure, fully saturated colors only. The mouse's DPI light showed pure red, green and blue correctly, but in-between
+        // shades (a softer red, a softer green) came out wrong, so every channel here is either full on or off, plus one orange.
+        Color.FromRgb(255, 0, 0), Color.FromRgb(255, 128, 0), Color.FromRgb(255, 255, 0), Color.FromRgb(0, 255, 0),
+        Color.FromRgb(0, 255, 255), Color.FromRgb(0, 0, 255), Color.FromRgb(255, 0, 255), Color.FromRgb(255, 255, 255),
     ];
     const string Custom = "CUSTOM (set in the original app)";
 

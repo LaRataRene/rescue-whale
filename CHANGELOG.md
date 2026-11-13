@@ -18,8 +18,13 @@ All notable changes to Rescue Whale are listed here, newest first.
 - The battery line is gone from the status box, since the gauge replaces it. Clicking the box now copies four lines.
 - Rescue Whale now keeps a second file on your PC: battery readings for the history graph, in `%AppData%\RescueWhale\battery.csv`, trimmed to the last 45 days.
 
+### Fixed
+
+- **DPI stage colors that didn't show on the mouse.** The color picker offered soft shades that the mouse's light displayed wrongly or not at all. It now offers pure colors (red, orange, yellow, green, cyan, blue, magenta, white), which the light shows properly. Stage colors picked in an earlier version need to be picked again.
+
 ### Known limits
 
+- The mouse's light shows white as a pale blue.
 - Battery history is only recorded while Rescue Whale is open and the mouse is awake. Anything else shows as a gap, and the history starts from the first time this version runs.
 
 ## 0.2.0 - November 12, 2026
