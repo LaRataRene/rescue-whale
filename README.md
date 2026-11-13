@@ -17,7 +17,8 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 - **Tips:** an `[i]` button on every section explains its settings
 - **Themes:** eight color schemes, five of them pure black for OLED screens
 - **Battery:** a gauge and percentage, colored by level. Click it for a graph of how the battery drained and recharged over the last day, week, or month.
-- **Status:** connection, battery level, model, device ID, and firmware version
+- **Status:** connection, model, device ID, and firmware version
+- **Window:** resize it freely. It shrinks to fit when small, and rearranges into a single column when tall and narrow.
 
 It finds the mouse on its own, over the USB cable or the wireless receiver, and reconnects when the mouse wakes up.
 
@@ -93,7 +94,7 @@ RescueWhale.exe --demo
 
 - **Built and tested for the Attack Shark X8 Ultra only.** It has not been run on any other mouse.
 - **Unofficial.** Rescue Whale is an independent project. It is not affiliated with, endorsed by, or supported by Attack Shark or Compx. Product names are trademarks of their owners and are used only to say what the app works with.
-- **Use at your own risk.** The app writes settings to your mouse's memory, and it is provided with no warranty (see the [license](LICENSE)). Before writing, it checks that the settings it read carry the checksums it expects, and goes read-only if they don't. That is a safeguard, not a guarantee. On any model other than the X8 Ultra the app is read-only unless you start it with `--unlock`, and with that option a setting could be saved incorrectly.
+- **Use at your own risk.** The app writes settings to your mouse's and receiver's memory, and it is provided with no warranty (see the [license](LICENSE)). Before writing, it checks that the settings it read carry the checksums it expects, and goes read-only if they don't. That is a safeguard, not a guarantee. On any model other than the X8 Ultra the app is read-only unless you start it with `--unlock`, and with that option a setting could be saved incorrectly.
 - **Not a full replacement.** See [What it does not do](#what-it-does-not-do). Keep the manufacturer's software for those jobs.
 - **How the protocol was worked out.** The commands and memory layout follow what is publicly known about how Compx-based mice communicate, confirmed by querying my own mouse and by reading the configuration files installed with the manufacturer's software. No manufacturer code or files are included here.
 - **AI-assisted.** The code, icon, and documentation were written with Claude, Anthropic's AI, under my direction, and tested by me on my own hardware.
