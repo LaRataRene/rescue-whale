@@ -138,6 +138,8 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 The mouse exposes a vendor-defined HID collection (usage page `FF02`) that exchanges 17-byte reports. Each report carries a command, an address, a length, up to ten bytes of data, and a checksum. Settings live in a small block of memory on the mouse, where every value is stored alongside its own check byte.
 
+The full details for the X8 Ultra, with commands, addresses and encodings, are in [PROTOCOL.md](PROTOCOL.md).
+
 - `Hid.cs` finds the device and sends and receives reports.
 - `Mouse.cs` maps that memory to named settings.
 - `MainWindow.xaml` and `MainWindow.xaml.cs` are the interface.
