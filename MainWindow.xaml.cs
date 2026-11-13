@@ -392,7 +392,12 @@ public partial class MainWindow : Window
     // ---------- receiver LED ----------
     void PopulateReceiver()
     {
-        RxBox.Visibility = _rxLed != null ? Visibility.Visible : Visibility.Collapsed;
+        bool show = _rxLed != null;
+        if ((RxBox.Visibility == Visibility.Visible) != show)
+        {
+            RxBox.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            Relayout();   // the box appearing or going changes how tall each arrangement is
+        }
         if (_rxLed == null) return;
         bool was = _loading;
         _loading = true;
@@ -431,19 +436,69 @@ public partial class MainWindow : Window
     }
 
     // ---------- window: no title bar, own buttons, contents shrink with the window ----------
-    const double DesignWidth = 1150, DesignHeight = 680, StripHeight = 30;
+    // Two arrangements of the same boxes: wide (two columns side by side) and tall (one column, header stacked).
+    const double WideWidth = 1150, TallWidth = 612, StripHeight = 30;
+    bool _tall;
 
-    /// <summary>Below the design size the whole interface is scaled down to fit; above it, the layout just gets more room.</summary>
-    void Root_SizeChanged(object sender, SizeChangedEventArgs e)
+    void Root_SizeChanged(object sender, SizeChangedEventArgs e) => Relayout();
+
+    /// <summary>
+    /// Picks the arrangement that suits the window's shape, then scales it down if the window is smaller than it needs.
+    /// A window bigger than the arrangement needs just gets more room.
+    /// </summary>
+    void Relayout()
     {
-        double w = e.NewSize.Width, h = e.NewSize.Height;
+        double w = Root.ActualWidth, h = Root.ActualHeight;
         if (w <= 0 || h <= 0) return;
-        double k = Math.Min(1, Math.Min(w / DesignWidth, h / DesignHeight));
+
+        double wideHeight = NaturalHeight(false), tallHeight = NaturalHeight(true);
+        double wideScale = Math.Min(1, Math.Min(w / WideWidth, h / wideHeight));
+        double tallScale = Math.Min(1, Math.Min(w / TallWidth, h / tallHeight));
+        // whichever shows the interface larger wins; when both fit at full size, a window taller than it is wide goes tall
+        bool tall = tallScale > wideScale + 0.001 || (Math.Abs(tallScale - wideScale) <= 0.001 && h >= w);
+        double k = tall ? tallScale : wideScale;
+
+        SetArrangement(tall);
         Scale.ScaleX = Scale.ScaleY = k;
         ScaleHost.Width = w / k;
         ScaleHost.Height = h / k;
         // keep the drag area matched to the strip, which shrinks with everything else
         if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is { } chrome) chrome.CaptionHeight = StripHeight * k;
+    }
+
+    /// <summary>How tall an arrangement is at its own width and full size.</summary>
+    double NaturalHeight(bool tall)
+    {
+        SetArrangement(tall);
+        Scale.ScaleX = Scale.ScaleY = 1;
+        double width = tall ? TallWidth : WideWidth;
+        ScaleHost.Width = width;
+        ScaleHost.Height = double.NaN;
+        ScaleHost.Measure(new Size(width, double.PositiveInfinity));
+        return ScaleHost.DesiredSize.Height;
+    }
+
+    void SetArrangement(bool tall)
+    {
+        _tall = tall;
+        // settings: the right-hand column drops below the left-hand one
+        Grid.SetColumnSpan(ColLeft, tall ? 3 : 1);
+        Grid.SetRow(ColRight, tall ? 1 : 0);
+        Grid.SetColumn(ColRight, tall ? 0 : 2);
+        Grid.SetColumnSpan(ColRight, tall ? 3 : 1);
+        // header: the battery and status box drop below the logo and title
+        Grid.SetColumnSpan(TitlePanel, tall ? 3 : 1);
+        TitleText.FontSize = tall ? 20 : 26;
+        Grid.SetRow(BatteryWidget, tall ? 1 : 0);
+        Grid.SetColumn(BatteryWidget, tall ? 0 : 2);
+        BatteryWidget.HorizontalAlignment = tall ? HorizontalAlignment.Left : HorizontalAlignment.Stretch;
+        BatteryWidget.Margin = tall ? new Thickness(0, 10, 0, 0) : new Thickness(0, 0, 22, 0);
+        BatteryPopup.HorizontalOffset = tall ? 0 : -250;
+        Grid.SetRow(StatusBox, tall ? 1 : 0);
+        Grid.SetColumn(StatusBox, tall ? 1 : 3);
+        Grid.SetColumnSpan(StatusBox, tall ? 3 : 1);
+        StatusBox.HorizontalAlignment = tall ? HorizontalAlignment.Right : HorizontalAlignment.Stretch;
+        StatusBox.Margin = tall ? new Thickness(0, 10, 0, 0) : new Thickness(0);
     }
 
     void Window_StateChanged(object? sender, EventArgs e)
@@ -599,6 +654,7 @@ public partial class MainWindow : Window
         }
         finally { _loading = false; }
         UpdateChrome();
+        Relayout();   // the DPI stage cards add height once they're filled in, which changes how much each arrangement needs
     }
 
     void BuildStages(Mouse m)
