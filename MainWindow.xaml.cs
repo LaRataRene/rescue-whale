@@ -118,6 +118,7 @@ public partial class MainWindow : Window
             Height = height;
         }
         BuildStaticControls();
+        InitController(args);
         StripText.Text = "rescue whale v" + (GetType().Assembly.GetName().Version?.ToString(3) ?? "?");
 
         // battery history: kept on disk for a real mouse, made up in memory for demo mode
@@ -228,7 +229,7 @@ public partial class MainWindow : Window
         foreach (var column in new[] { ColLeft, ColRight })
             foreach (UIElement box in column.Children)
                 if (box != RxBox) { box.IsEnabled = ready; box.Opacity = ready ? 1 : 0.18; }
-        Offline.Visibility = ready ? Visibility.Collapsed : Visibility.Visible;
+        Offline.Visibility = ready || _page == 1 ? Visibility.Collapsed : Visibility.Visible;   // the controller page doesn't need the mouse
 
         if (m == null)
         {
@@ -504,6 +505,10 @@ public partial class MainWindow : Window
         Grid.SetRow(ColRight, tall ? 1 : 0);
         Grid.SetColumn(ColRight, tall ? 0 : 2);
         Grid.SetColumnSpan(ColRight, tall ? 3 : 1);
+        Grid.SetColumnSpan(PadLeft, tall ? 3 : 1);
+        Grid.SetRow(PadRight, tall ? 1 : 0);
+        Grid.SetColumn(PadRight, tall ? 0 : 2);
+        Grid.SetColumnSpan(PadRight, tall ? 3 : 1);
         // header: the battery and status box drop below the logo and title
         Grid.SetColumnSpan(TitlePanel, tall ? 3 : 1);
         TitleText.FontSize = tall ? 20 : 26;

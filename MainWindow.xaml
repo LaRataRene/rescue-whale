@@ -27,7 +27,12 @@
                 <Button x:Name="MaxButton" Style="{StaticResource WinButton}" Content="[^]" ToolTip="Maximize" Click="Maximize_Click"/>
                 <Button Style="{StaticResource WinCloseButton}" Content="[x]" ToolTip="Close" Click="Close_Click"/>
             </StackPanel>
-            <TextBlock x:Name="StripText" Text="rescue whale" FontSize="12" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="22,0,0,0"/>
+            <TextBlock x:Name="StripText" DockPanel.Dock="Left" Text="rescue whale" FontSize="12" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="22,0,0,0"/>
+            <!-- which device's page is showing -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="26,0,0,0" WindowChrome.IsHitTestVisibleInChrome="True">
+                <RadioButton x:Name="PageMouse" Style="{StaticResource PageTab}" Content="[ MOUSE ]" GroupName="page" Checked="Page_Checked"/>
+                <RadioButton x:Name="PageController" Style="{StaticResource PageTab}" Content="[ CONTROLLER ]" GroupName="page" Checked="Page_Checked"/>
+            </StackPanel>
         </DockPanel>
 
         <Grid Grid.Row="1" Margin="22,2,22,10">
@@ -221,6 +226,74 @@
                                 <TextBlock Text="RIPPLE CONTROL" Width="150" Style="{StaticResource Label}"/>
                                 <CheckBox x:Name="SwRipple" Style="{StaticResource Switch}" HorizontalAlignment="Left" Click="Switch_Click"/>
                             </DockPanel>
+                        </StackPanel>
+                    </HeaderedContentControl>
+                </StackPanel>
+            </Grid>
+
+            <!-- the controller page: same two-column / one-column arrangement as the mouse page -->
+            <Grid x:Name="PadPage" Grid.Row="1" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel x:Name="PadLeft">
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ CONTROLLER ]"
+                                            Tag="&gt; works with xbox controllers that windows already recognizes, by cable, bluetooth or the wireless adapter.&#10;&gt; this page only reads from the controller. nothing is saved onto it, so it can't interfere with the xbox accessories app.&#10;&gt; power shows wired, or a rough battery level: empty, low, medium or full. that is as much detail as windows reports.">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Text="STATUS" Width="150" Style="{StaticResource Label}"/>
+                                <TextBlock x:Name="PadState" Text="LOOKING..." FontWeight="Bold"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,7,0,0">
+                                <TextBlock Text="POWER" Width="150" Style="{StaticResource Label}"/>
+                                <TextBlock x:Name="PadPower" Text="--"/>
+                            </DockPanel>
+                        </StackPanel>
+                    </HeaderedContentControl>
+
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ TESTER ]"
+                                            Tag="&gt; press anything on the controller and it lights up here.&#10;&gt; the dots show where each stick is. let go of a stick: if its dot doesn't settle in the middle, the stick is drifting.&#10;&gt; the bars show how far each trigger is pulled. the numbers underneath are the raw readings: sticks run from -32768 to 32767, triggers from 0 to 255.">
+                        <StackPanel>
+                            <Canvas x:Name="PadCanvas" Width="520" Height="204" HorizontalAlignment="Left"/>
+                            <TextBlock x:Name="PadReadout" Style="{StaticResource Hint}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </HeaderedContentControl>
+
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ VIBRATION ]"
+                                            Tag="&gt; set a strength for each motor and press test to run them for one second.&#10;&gt; the left motor is the heavy, low rumble. the right motor is the lighter, faster buzz.">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Text="LEFT MOTOR" Width="150" Style="{StaticResource Label}"/>
+                                <TextBlock x:Name="PadVibeLeftText" DockPanel.Dock="Right" Width="52" TextAlignment="Right" Style="{StaticResource Label}" Foreground="{DynamicResource Accent}" Text="60%"/>
+                                <Slider x:Name="PadVibeLeft" Minimum="0" Maximum="100" Value="60" VerticalAlignment="Center" ValueChanged="PadVibe_ValueChanged"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,9,0,0">
+                                <TextBlock Text="RIGHT MOTOR" Width="150" Style="{StaticResource Label}"/>
+                                <TextBlock x:Name="PadVibeRightText" DockPanel.Dock="Right" Width="52" TextAlignment="Right" Style="{StaticResource Label}" Foreground="{DynamicResource Accent}" Text="60%"/>
+                                <Slider x:Name="PadVibeRight" Minimum="0" Maximum="100" Value="60" VerticalAlignment="Center" ValueChanged="PadVibe_ValueChanged"/>
+                            </DockPanel>
+                            <Button Style="{StaticResource Ghost}" Content="TEST FOR 1 SECOND" HorizontalAlignment="Left" Margin="150,10,0,0" Click="PadVibeTest_Click"/>
+                        </StackPanel>
+                    </HeaderedContentControl>
+                </StackPanel>
+
+                <StackPanel x:Name="PadRight" Grid.Column="2">
+                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ KEY MAPPING ]"
+                                            Tag="&gt; make a controller button send a keyboard key or a mouse action, for programs that don't understand controllers.&#10;&gt; it only works while rescue whale is open and mapping is on. the keys go to whatever window is in front.&#10;&gt; the controller still works as a controller at the same time: games that support it will see both the button and the key. this does not change which button is which inside a game.&#10;&gt; nothing is saved onto the controller. for remaps that live on the controller itself, use the xbox accessories app.">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Text="MAPPING" Width="150" Style="{StaticResource Label}"/>
+                                <Button DockPanel.Dock="Right" Style="{StaticResource Ghost}" Content="CLEAR ALL" Click="PadClear_Click"/>
+                                <CheckBox x:Name="PadMapSwitch" Style="{StaticResource Switch}" HorizontalAlignment="Left" Click="PadMap_Click"/>
+                            </DockPanel>
+                            <UniformGrid x:Name="PadMapRows" Columns="2" Margin="0,14,0,0"/>
                         </StackPanel>
                     </HeaderedContentControl>
                 </StackPanel>

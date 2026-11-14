@@ -2,6 +2,27 @@
 
 All notable changes to Rescue Whale are listed here, newest first.
 
+## Unreleased
+
+### Added
+
+- **Xbox controller page.** `[ MOUSE ]` and `[ CONTROLLER ]` tabs in the top strip switch between the two. The controller page has:
+  - a live tester that lights up each button, shows where both sticks are, and how far each trigger is pulled, with the raw readings underneath;
+  - the connection and power state;
+  - a vibration test with a strength for each motor;
+  - key mapping, which makes a controller button send a keyboard key or a mouse action.
+- `--page controller` opens the app on the controller page.
+
+### Changed
+
+- Long dropdown lists now scroll.
+- Rescue Whale keeps a third file on your PC: your controller key mapping, in `%AppData%\RescueWhale\controller.txt`.
+
+### Known limits
+
+- Controller key mapping works only while Rescue Whale is open, and it adds key presses alongside the controller's own signal. It does not change which button is which inside a game, and nothing is saved onto the controller.
+- The controller page has been tested with one Xbox Series X|S controller on a USB cable.
+
 ## 0.3.1 - November 13, 2026
 
 ### Changed

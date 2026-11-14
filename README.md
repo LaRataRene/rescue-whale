@@ -35,6 +35,7 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 - **Themes:** eight color schemes, five of them pure black for OLED screens
 - **Battery:** a gauge and percentage, colored by level. Click it for a graph of how the battery drained and recharged over the last day, week, or month.
 - **Status:** connection, model, device ID, and firmware version
+- **Xbox controller page:** a live tester for every button, stick and trigger, the power state, a vibration test, and mapping of controller buttons to keyboard keys or mouse actions. Nothing is written to the controller; the mapping works only while Rescue Whale is open. Tested with an Xbox Series X|S controller on a USB cable.
 - **Window:** resize it freely. It shrinks to fit when small, and rearranges into a single column when tall and narrow.
 
 It finds the mouse on its own, over the USB cable or the wireless receiver, and reconnects when the mouse wakes up.
@@ -45,6 +46,7 @@ It finds the mouse on its own, over the USB cable or the wireless receiver, and 
 - Lighting effects on the mouse
 - Changing the colors of the receiver's light, or having it follow the DPI stage. On the tested receiver (firmware 2.02) neither had any visible effect, so they are left out.
 - Profiles
+- Remapping an Xbox controller's buttons inside games, or anything else the Xbox Accessories app saves onto the controller. Rescue Whale's controller mapping only sends keyboard and mouse actions.
 - Pairing and firmware updates. Use the manufacturer's software for those.
 
 ## Tested hardware
@@ -116,7 +118,8 @@ RescueWhale.exe --demo
 - **How the protocol was worked out.** The commands and memory layout follow what is publicly known about how Compx-based mice communicate, confirmed by querying my own mouse and by reading the configuration files installed with the manufacturer's software. No manufacturer code or files are included here.
 - **AI-assisted.** The code, icon, and documentation were written with Claude, Anthropic's AI, under my direction, and tested by me on my own hardware.
 - **Unsigned program.** The download is not code-signed, so Windows shows a "Windows protected your PC" warning on first run. Choose **More info**, then **Run anyway**.
-- **Privacy.** No telemetry and no network connections. Your mouse settings live only on the mouse. Two small files are kept on your PC, both in `%AppData%\RescueWhale`: `theme.txt` holds your theme choice, and `battery.csv` holds battery readings (time, level, charging or not) for the history graph, trimmed to the last 45 days. Delete either at any time.
+- **Privacy.** No telemetry and no network connections. Your mouse settings live only on the mouse. Three small files are kept on your PC, all in `%AppData%\RescueWhale`: `theme.txt` holds your theme choice, `battery.csv` holds battery readings (time, level, charging or not) for the history graph, trimmed to the last 45 days, and `controller.txt` holds your controller key mapping. Delete any of them at any time.
+- **Controller key mapping sends key presses.** When you switch mapping on, Rescue Whale presses the keys you chose on your behalf, into whichever window is in front. It is off until you turn it on, and it stops when you close the app.
 - **Early software.** This is an early version by a single author. Expect rough edges, and please report what you find. Changes between versions are listed in the [changelog](CHANGELOG.md).
 
 ## Build from source
