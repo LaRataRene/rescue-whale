@@ -94,7 +94,7 @@
                 </Grid>
                 <StackPanel x:Name="TitlePanel" Grid.Column="1" VerticalAlignment="Center" Margin="26,0,0,0" Background="Transparent" MouseLeftButtonDown="Drag_MouseDown">
                     <TextBlock x:Name="TitleText" Text="R E S C U E   W H A L E" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource Accent}"/>
-                    <TextBlock Text="// mouse control terminal" Style="{StaticResource Hint}" FontSize="13" Margin="2,4,0,0"/>
+                    <TextBlock Text="// mouse &amp; controller terminal" Style="{StaticResource Hint}" FontSize="13" Margin="2,4,0,0"/>
                 </StackPanel>
                 <Border x:Name="StatusBox" Grid.Column="3" Background="Transparent" BorderBrush="{DynamicResource Line}" BorderThickness="1" Padding="14,10" VerticalAlignment="Center" MinWidth="330"
                         Cursor="Hand" ToolTip="Click to copy these details" MouseLeftButtonUp="StatusBox_Click">
@@ -112,7 +112,7 @@
                             <TextBlock x:Name="IdText" Text="--"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
-                            <TextBlock Text="FIRMWARE .. " Foreground="{DynamicResource Muted}"/>
+                            <TextBlock x:Name="FirmwareLabel" Text="FIRMWARE .. " Foreground="{DynamicResource Muted}"/>
                             <TextBlock x:Name="FirmwareText" Text="--"/>
                         </StackPanel>
                     </StackPanel>
@@ -244,22 +244,8 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel x:Name="PadLeft">
-                    <HeaderedContentControl Style="{StaticResource Box}" Header="[ CONTROLLER ]"
-                                            Tag="&gt; works with xbox controllers that windows already recognizes, by cable, bluetooth or the wireless adapter.&#10;&gt; this page only reads from the controller. nothing is saved onto it, so it can't interfere with the xbox accessories app.&#10;&gt; power shows wired, or a rough battery level: empty, low, medium or full. that is as much detail as windows reports.">
-                        <StackPanel>
-                            <DockPanel>
-                                <TextBlock Text="STATUS" Width="150" Style="{StaticResource Label}"/>
-                                <TextBlock x:Name="PadState" Text="LOOKING..." FontWeight="Bold"/>
-                            </DockPanel>
-                            <DockPanel Margin="0,7,0,0">
-                                <TextBlock Text="POWER" Width="150" Style="{StaticResource Label}"/>
-                                <TextBlock x:Name="PadPower" Text="--"/>
-                            </DockPanel>
-                        </StackPanel>
-                    </HeaderedContentControl>
-
                     <HeaderedContentControl Style="{StaticResource Box}" Header="[ TESTER ]"
-                                            Tag="&gt; press anything on the controller and it lights up here.&#10;&gt; the dots show where each stick is. let go of a stick: if its dot doesn't settle in the middle, the stick is drifting.&#10;&gt; the bars show how far each trigger is pulled. the numbers underneath are the raw readings: sticks run from -32768 to 32767, triggers from 0 to 255.">
+                                            Tag="&gt; works with xbox controllers that windows already recognizes, by cable, bluetooth or the wireless adapter. this page only reads from the controller; nothing is saved onto it.&#10;&gt; the status box and battery gauge at the top describe the controller while this page is open. windows reports only a rough battery level for a controller (empty, low, med, full), and none while it's on a cable.&#10;&gt; press anything on the controller and it lights up here.&#10;&gt; the dots show where each stick is. let go of a stick: if its dot doesn't settle in the middle, the stick is drifting.&#10;&gt; the bars show how far each trigger is pulled. the numbers underneath are the raw readings: sticks run from -32768 to 32767, triggers from 0 to 255.">
                         <StackPanel>
                             <Canvas x:Name="PadCanvas" Width="520" Height="204" HorizontalAlignment="Left"/>
                             <TextBlock x:Name="PadReadout" Style="{StaticResource Hint}" Margin="0,8,0,0"/>

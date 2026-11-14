@@ -248,21 +248,52 @@ public partial class MainWindow
         _padChips[name].BorderThickness = new Thickness(clicked ? 2 : 1);
     }
 
+    int _padBatteryType = -1, _padBatteryLevel;   // as XInput reports them: type 1 is wired; level runs 0 (empty) to 3 (full)
+
     void ShowPadStatus(bool connected)
     {
-        if (!connected)
+        if (connected && XInputGetBatteryInformation((uint)_padSlot, 0, out var bat) == 0) { _padBatteryType = bat.Type; _padBatteryLevel = bat.Level; }
+        else _padBatteryType = -1;
+        if (!connected) PadReadout.Text = "connect an xbox controller by cable, bluetooth or the wireless adapter";
+        if (_page == 1) ShowPadHeader();
+    }
+
+    /// <summary>On the controller page the header's status box and battery gauge describe the controller instead of the mouse.</summary>
+    void ShowPadHeader()
+    {
+        FirmwareLabel.Text = "POWER ..... ";
+        if (_padSlot < 0)
         {
-            PadState.Text = "NOT CONNECTED";
-            PadState.SetResourceReference(TextBlock.ForegroundProperty, "Warn");
-            PadPower.Text = "--";
-            PadReadout.Text = "connect an xbox controller by cable, bluetooth or the wireless adapter";
+            SetState("Warn", "NO CONTROLLER");
+            ModelText.Text = "--"; IdText.Text = "--"; FirmwareText.Text = "--";
+            BatteryIcon.Text = BatteryArt(0);
+            BatteryIcon.Foreground = BatteryPct.Foreground = (Brush)FindResource("Muted");
+            BatteryPct.Text = "--";
+            BatteryNote.Text = "CONTROLLER";
             return;
         }
-        PadState.Text = "CONNECTED / SLOT " + (_padSlot + 1);
-        PadState.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
-        PadPower.Text = XInputGetBatteryInformation((uint)_padSlot, 0, out var bat) != 0 ? "UNKNOWN"
-            : bat.Type == 1 ? "WIRED"
-            : (bat.Level switch { 0 => "EMPTY", 1 => "LOW", 2 => "MEDIUM", _ => "FULL" }) + " BATTERY";
+        bool wired = _padBatteryType == 1, known = _padBatteryType > 0;
+        SetState("Accent", !known ? "CONTROLLER ONLINE" : wired ? "CONTROLLER / CABLE" : "CONTROLLER / WIRELESS");
+        ModelText.Text = "XBOX CONTROLLER";
+        IdText.Text = "xinput slot " + (_padSlot + 1);
+
+        // Windows only reports four rough battery levels for a controller, and none at all while it's on a cable
+        string word = _padBatteryLevel switch { 0 => "EMPTY", 1 => "LOW", 2 => "MED", _ => "FULL" };
+        int percent = _padBatteryLevel switch { 0 => 5, 1 => 30, 2 => 60, _ => 100 };
+        FirmwareText.Text = !known ? "unknown" : wired ? "on cable" : word.ToLowerInvariant() + " battery";
+        if (known && !wired)
+        {
+            BatteryIcon.Text = BatteryArt(percent);
+            BatteryIcon.Foreground = BatteryPct.Foreground = BatteryColor(percent);
+            BatteryPct.Text = word;
+        }
+        else
+        {
+            BatteryIcon.Text = BatteryArt(wired ? 100 : 0);
+            BatteryIcon.Foreground = BatteryPct.Foreground = (Brush)FindResource(wired ? "Text" : "Muted");
+            BatteryPct.Text = wired ? "USB" : "--";
+        }
+        BatteryNote.Text = "CONTROLLER";
     }
 
     // ---------- mapping ----------

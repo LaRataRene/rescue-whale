@@ -230,6 +230,8 @@ public partial class MainWindow : Window
             foreach (UIElement box in column.Children)
                 if (box != RxBox) { box.IsEnabled = ready; box.Opacity = ready ? 1 : 0.18; }
         Offline.Visibility = ready || _page == 1 ? Visibility.Collapsed : Visibility.Visible;   // the controller page doesn't need the mouse
+        if (_page == 1) { ShowPadHeader(); return; }   // there, the header describes the controller
+        FirmwareLabel.Text = "FIRMWARE .. ";
 
         if (m == null)
         {
@@ -307,6 +309,7 @@ public partial class MainWindow : Window
     {
         // a click on the gauge while the graph is open first closes it (it counts as a click outside); don't reopen it straight away
         if ((DateTime.UtcNow - _batteryClosedAt).TotalMilliseconds < 300) return;
+        if (_page == 1) { Status("battery history is recorded for the mouse only; windows reports just a rough level for a controller"); return; }
         DrawBatteryGraph();
         BatteryPopup.IsOpen = true;
     }
@@ -449,7 +452,7 @@ public partial class MainWindow : Window
     /// <summary>Copies the status box as text, so it can be pasted into a bug report or a new-mouse report.</summary>
     void StatusBox_Click(object sender, MouseButtonEventArgs e)
     {
-        string text = $"LINK ...... {StateText.Text}\nMODEL ..... {ModelText.Text}\nDEVICE ID . {IdText.Text}\nFIRMWARE .. {FirmwareText.Text}";
+        string text = $"LINK ...... {StateText.Text}\nMODEL ..... {ModelText.Text}\nDEVICE ID . {IdText.Text}\n{FirmwareLabel.Text}{FirmwareText.Text}";
         try { Clipboard.SetText(text); Status("device details copied to the clipboard"); }
         catch { Status("couldn't reach the clipboard, try again", true); }
     }
