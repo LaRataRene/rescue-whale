@@ -23,8 +23,8 @@ public partial class MainWindow
     TrayItem? _trayMouse, _trayRate, _trayPad, _trayApp;   // mouse battery, mouse polling rate, controller, and the whale
     bool _exiting, _trayHintShown;
 
-    // All tray icons are plain grayscale, and follow the taskbar's own light or dark setting:
-    // light gray ink on a dark taskbar, dark gray ink on a light one.
+    // Tray icons are drawn in the app theme's text color, adjusted just enough to stay readable on the taskbar:
+    // darkened on a light taskbar, lightened on a dark one, keeping the hue.
     static bool LightTaskbar
     {
         get
@@ -37,7 +37,23 @@ public partial class MainWindow
             catch { return false; }
         }
     }
-    static SD.Color TrayInk => LightTaskbar ? SD.Color.FromArgb(0x1C, 0x1C, 0x1C) : SD.Color.FromArgb(0xE8, 0xE8, 0xE8);
+    static SD.Color TrayInk = SD.Color.FromArgb(0xE8, 0xE8, 0xE8);   // set from the theme before icons are drawn
+
+    /// <summary>The theme's text color, darkened or lightened until it stands out from the taskbar.</summary>
+    static SD.Color ThemedInk(string hex, bool lightTaskbar)
+    {
+        var c = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
+        double r = c.R, g = c.G, b = c.B;
+        static double Lum(double r, double g, double b) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+        for (int i = 0; i < 20; i++)
+        {
+            double lum = Lum(r, g, b);
+            if (lightTaskbar ? lum <= 0.30 : lum >= 0.50) break;
+            if (lightTaskbar) { r *= 0.85; g *= 0.85; b *= 0.85; }                                         // darker, same hue
+            else { r += (255 - r) * 0.15; g += (255 - g) * 0.15; b += (255 - b) * 0.15; }                   // lighter, same hue
+        }
+        return SD.Color.FromArgb((int)r, (int)g, (int)b);
+    }
 
     void InitTray()
     {
@@ -110,6 +126,9 @@ public partial class MainWindow
     void UpdateTray()
     {
         if (_trayMouse == null || _trayRate == null || _trayPad == null) return;
+        bool lightBar = LightTaskbar;
+        TrayInk = ThemedInk(_theme.Text, lightBar);
+        string look = _theme.Name + lightBar;   // part of each icon's key, so a theme change redraws them
 
         var m = _m;
         bool mouseReady = m is { Online: true, Loaded: true } && m.Battery >= 0;
@@ -121,12 +140,12 @@ public partial class MainWindow
             string info = $"{name}:  {m.Battery}%  ·  {rate}";
             int battery = m.Battery;
 
-            if (_opt.BatteryIcon) SetTray(_trayMouse, $"b{battery}{LightTaskbar}", () => TextIcon(battery.ToString()), tip, info);
+            if (_opt.BatteryIcon) SetTray(_trayMouse, $"b{battery}{look}", () => TextIcon(battery.ToString()), tip, info);
             else _trayMouse.Icon.Visible = false;
 
             // 8000 -> 8K, 1000 -> 1K, 500 -> 500
             string shortRate = m.PollingHz >= 1000 ? m.PollingHz / 1000 + "K" : m.PollingHz > 0 ? m.PollingHz.ToString() : "?";
-            if (_opt.PollingIcon) SetTray(_trayRate, "r" + shortRate + LightTaskbar, () => TextIcon(shortRate), tip, info);
+            if (_opt.PollingIcon) SetTray(_trayRate, "r" + shortRate + look, () => TextIcon(shortRate), tip, info);
             else _trayRate.Icon.Visible = false;
 
             CheckBatteryAlert(m);
@@ -139,8 +158,8 @@ public partial class MainWindow
             string level = !known ? "unknown" : wired ? "on cable" : _padBatteryLevel switch { 0 => "empty", 1 => "low", 2 => "medium", _ => "full" };
             string tip = $"Xbox controller\nPower: {level}";
             int padLevel = _padBatteryLevel;
-            if (wired || !known) SetTray(_trayPad, "p" + level + LightTaskbar, () => TextIcon(wired ? "USB" : "?"), tip, "Xbox controller:  " + level);
-            else SetTray(_trayPad, "p" + level + LightTaskbar, () => TrayBatteryIcon(padLevel), tip, "Xbox controller:  " + level + " battery");
+            if (wired || !known) SetTray(_trayPad, "p" + level + look, () => TextIcon(wired ? "USB" : "?"), tip, "Xbox controller:  " + level);
+            else SetTray(_trayPad, "p" + level + look, () => TrayBatteryIcon(padLevel), tip, "Xbox controller:  " + level + " battery");
         }
         else _trayPad.Icon.Visible = false;
 

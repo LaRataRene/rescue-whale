@@ -607,6 +607,7 @@ public partial class MainWindow : Window
         ApplyTitleBar();
         Populate();          // the DPI stage cards are built in code, so rebuild them in the new colors
         UpdateChrome();
+        UpdateTray();        // the tray icons use the theme too
         Status("theme set to " + _theme.Name.ToLowerInvariant());
     }
 

@@ -36,7 +36,7 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 - **Battery:** a gauge and percentage, colored by level. Click it for a graph of how the battery drained and recharged over the last day, week, or month.
 - **Status:** connection, model, device ID, and firmware version
 - **Xbox controller page:** a live tester for every button, stick and trigger, the power state, a vibration test, and mapping of controller buttons to keyboard keys or mouse actions. Nothing is written to the controller; the mapping works only while Rescue Whale is open. Tested with an Xbox Series X|S controller on a USB cable.
-- **Tray icons and options:** connected devices get grayscale tray icons for the mouse's battery, its polling rate, and the controller's power, and closing the window hides the app to the tray. An `[ OPTIONS ]` panel in the top strip switches the battery and polling rate icons on or off, sets a battery alert notification at 15–50%, chooses whether closing hides or quits, and starts the app with Windows.
+- **Tray icons and options:** connected devices get tray icons, in the theme's colors, for the mouse's battery, its polling rate, and the controller's power, and closing the window hides the app to the tray. An `[ OPTIONS ]` panel in the top strip switches the battery and polling rate icons on or off, sets a battery alert notification at 15–50%, chooses whether closing hides or quits, and starts the app with Windows.
 - **Window:** resize it freely. It shrinks to fit when small, and rearranges into a single column when tall and narrow.
 
 It finds the mouse on its own, over the USB cable or the wireless receiver, and reconnects when the mouse wakes up.
