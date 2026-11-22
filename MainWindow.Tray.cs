@@ -20,7 +20,8 @@ public partial class MainWindow
         public WF.ToolStripMenuItem? Info;
     }
 
-    TrayItem? _trayMouse, _trayPad;
+    TrayItem? _trayMouse, _trayPad, _trayApp;
+    bool _exiting, _trayHintShown;
 
     static readonly SD.Color TrayGreen = SD.Color.FromArgb(0x30, 0xD1, 0x58), TrayAmber = SD.Color.FromArgb(0xFF, 0xB6, 0x27),
                              TrayRed = SD.Color.FromArgb(0xFF, 0x55, 0x55), TrayLight = SD.Color.FromArgb(0xE4, 0xE4, 0xE4);
@@ -30,7 +31,44 @@ public partial class MainWindow
         if (_shot != null) return;   // screenshot runs open and close in a moment; no point flashing tray icons
         _trayMouse = MakeTray();
         _trayPad = MakeTray();
-        Closed += (_, _) => { foreach (var t in new[] { _trayMouse, _trayPad }) if (t != null) { t.Icon.Visible = false; t.Icon.Dispose(); FreeTrayImage(t); } };
+        // the whale icon, shown only while the window is hidden and no device is connected, so there's always a way back
+        _trayApp = MakeTray();
+        _trayApp.Info!.Text = "Rescue Whale: no device connected";
+        _trayApp.Icon.Text = "Rescue Whale\nNo device connected";
+        try
+        {
+            using var stream = Application.GetResourceStream(new Uri("pack://application:,,,/icon.ico")).Stream;
+            _trayApp.Icon.Icon = new SD.Icon(stream, WF.SystemInformation.SmallIconSize);
+        }
+        catch { _trayApp.Icon.Icon = SD.SystemIcons.Application; }
+
+        // closing the window hides it to the tray; Exit in the tray menu, or Windows shutting down, really quits
+        Closing += (_, e) =>
+        {
+            if (_exiting) return;
+            e.Cancel = true;
+            HideToTray();
+        };
+        Application.Current.SessionEnding += (_, _) => _exiting = true;
+        IsVisibleChanged += (_, _) => UpdateTray();
+        Closed += (_, _) => { foreach (var t in new[] { _trayMouse, _trayPad, _trayApp }) if (t != null) { t.Icon.Visible = false; t.Icon.Dispose(); FreeTrayImage(t); } };
+    }
+
+    void HideToTray()
+    {
+        Hide();
+        UpdateTray();
+        if (_trayHintShown) return;
+        _trayHintShown = true;
+        var shown = new[] { _trayMouse, _trayPad, _trayApp }.FirstOrDefault(t => t is { Icon.Visible: true });
+        shown?.Icon.ShowBalloonTip(4000, "Rescue Whale is still running",
+            "It's in the tray. Click its icon to open it again, or right-click and choose Exit to quit.", WF.ToolTipIcon.None);
+    }
+
+    void ExitFromTray()
+    {
+        _exiting = true;
+        Close();
     }
 
     TrayItem MakeTray()
@@ -41,7 +79,7 @@ public partial class MainWindow
         menu.Items.Add(item.Info);
         menu.Items.Add(new WF.ToolStripSeparator());
         menu.Items.Add("Open Rescue Whale", null, (_, _) => ShowFromTray());
-        menu.Items.Add("Exit", null, (_, _) => Close());
+        menu.Items.Add("Exit", null, (_, _) => ExitFromTray());
         item.Icon.ContextMenuStrip = menu;
         item.Icon.MouseClick += (_, e) => { if (e.Button == WF.MouseButtons.Left) ShowFromTray(); };
         return item;
@@ -84,6 +122,8 @@ public partial class MainWindow
             }
         }
         else _trayPad.Icon.Visible = false;
+
+        if (_trayApp != null) _trayApp.Icon.Visible = !IsVisible && !_trayMouse.Icon.Visible && !_trayPad.Icon.Visible;
     }
 
     void SetTray(TrayItem t, string key, Func<IntPtr> draw, string tip, string info)
