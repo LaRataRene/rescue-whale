@@ -121,7 +121,7 @@ public partial class MainWindow
             string info = $"{name}:  {m.Battery}%  ·  {rate}";
             int battery = m.Battery;
 
-            if (_opt.BatteryIcon) SetTray(_trayMouse, $"b{battery}{LightTaskbar}", () => TextIcon(battery.ToString(), "%"), tip, info);
+            if (_opt.BatteryIcon) SetTray(_trayMouse, $"b{battery}{LightTaskbar}", () => TextIcon(battery.ToString()), tip, info);
             else _trayMouse.Icon.Visible = false;
 
             // 8000 -> 8K, 1000 -> 1K, 500 -> 500
