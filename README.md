@@ -7,17 +7,23 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 ![Rescue Whale](preview.png)
 
 <details>
-<summary><b>More screenshots:</b> tall layout, themes, battery history</summary>
+<summary><b>More screenshots:</b> single-column layout, themes, options, battery history</summary>
 
-**Tall layout.** Make the window narrow and tall and the boxes rearrange into a single column.
+These screenshots use the app's demo mode, so they show sample settings rather than a real mouse.
 
-<img src="screenshots/tall.png" alt="Rescue Whale in its tall single-column layout" width="420">
+**Single-column layout.** Make the window narrower and the boxes rearrange into one column.
 
-**Themes.** Six of the eight: OLED green, OLED amber, OLED ice, OLED mono, OLED red, and paper.
+<img src="screenshots/tall.png" alt="Rescue Whale in its single-column layout" width="420">
+
+**Themes.** Six of the nine: OLED green, OLED amber, OLED ice, OLED mono, OLED red, and pink & purple.
 
 ![Six Rescue Whale themes](screenshots/themes.png)
 
-**Battery history.** Click the battery gauge for a graph of how the battery drained and recharged. This one shows the app's demo data.
+**Options.** The `[ OPTIONS ]` button in the top strip opens the theme choice, tray icons, battery alert, close behavior, and starting with Windows.
+
+![Options panel](screenshots/options.png)
+
+**Battery history.** Click the battery gauge for a graph of how the battery drained and recharged.
 
 ![Battery history graph](screenshots/battery-history.png)
 
