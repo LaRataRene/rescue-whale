@@ -11,6 +11,7 @@ All notable changes to Rescue Whale are listed here, newest first.
   - the connection and power state, shown in the status box and battery gauge at the top, which switch from the mouse to the controller while this page is open;
   - a vibration test with a strength for each motor;
   - key mapping, which makes a controller button send a keyboard key or a mouse action.
+- **Xbox Wireless Adapter detection.** The controller page recognizes the adapter (original and slim models) when it is plugged in and has its driver, says so in the status box, and tells you how to connect a controller to it when none is on.
 - **Live polling rate.** The polling rate box has a `LIVE` row that counts the reports the mouse actually sends while you move it, with a bar against the chosen rate and the peak from the last few seconds.
 - `--page controller` opens the app on the controller page.
 

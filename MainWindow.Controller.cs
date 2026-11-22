@@ -249,12 +249,50 @@ public partial class MainWindow
     }
 
     int _padBatteryType = -1, _padBatteryLevel;   // as XInput reports them: type 1 is wired; level runs 0 (empty) to 3 (full)
+    bool _padAdapter;                             // an Xbox Wireless Adapter is plugged in and working
+
+    // ---- finding the Xbox Wireless Adapter among the PC's USB devices ----
+    [StructLayout(LayoutKind.Sequential)] struct SP_DEVINFO_DATA { public int cbSize; public Guid ClassGuid; public int DevInst; public IntPtr Reserved; }
+    [DllImport("setupapi.dll", CharSet = CharSet.Unicode)] static extern IntPtr SetupDiGetClassDevs(IntPtr classGuid, string enumerator, IntPtr hwnd, int flags);
+    [DllImport("setupapi.dll")] static extern bool SetupDiEnumDeviceInfo(IntPtr set, int index, ref SP_DEVINFO_DATA data);
+    [DllImport("setupapi.dll", CharSet = CharSet.Unicode)] static extern bool SetupDiGetDeviceInstanceId(IntPtr set, ref SP_DEVINFO_DATA data, System.Text.StringBuilder id, int size, out int required);
+    [DllImport("setupapi.dll")] static extern bool SetupDiGetDeviceRegistryProperty(IntPtr set, ref SP_DEVINFO_DATA data, int property, out int type, byte[] buffer, int size, out int required);
+    [DllImport("setupapi.dll", EntryPoint = "SetupDiDestroyDeviceInfoList")] static extern bool SetupDiDestroyList(IntPtr set);
+
+    /// <summary>
+    /// True when an Xbox Wireless Adapter (either the original or the slim model) is plugged in and has a driver.
+    /// Without its driver the adapter is listed but has no service, and no controller can connect through it.
+    /// </summary>
+    static bool FindXboxAdapter()
+    {
+        var set = SetupDiGetClassDevs(IntPtr.Zero, "USB", IntPtr.Zero, 0x02 | 0x04);   // present devices, all classes
+        if (set == IntPtr.Zero || set == new IntPtr(-1)) return false;
+        try
+        {
+            var data = new SP_DEVINFO_DATA { cbSize = Marshal.SizeOf<SP_DEVINFO_DATA>() };
+            var id = new System.Text.StringBuilder(260);
+            var buffer = new byte[256];
+            for (int i = 0; SetupDiEnumDeviceInfo(set, i, ref data); i++)
+            {
+                if (!SetupDiGetDeviceInstanceId(set, ref data, id, id.Capacity, out _)) continue;
+                string s = id.ToString().ToUpperInvariant();
+                if (!s.Contains("VID_045E&PID_02FE") && !s.Contains("VID_045E&PID_02E6")) continue;
+                return SetupDiGetDeviceRegistryProperty(set, ref data, 4, out _, buffer, buffer.Length, out int n) && n > 2;   // property 4 is the driver's service name
+            }
+            return false;
+        }
+        finally { SetupDiDestroyList(set); }
+    }
 
     void ShowPadStatus(bool connected)
     {
         if (connected && XInputGetBatteryInformation((uint)_padSlot, 0, out var bat) == 0) { _padBatteryType = bat.Type; _padBatteryLevel = bat.Level; }
         else _padBatteryType = -1;
-        if (!connected) PadReadout.Text = "connect an xbox controller by cable, bluetooth or the wireless adapter";
+        _padAdapter = FindXboxAdapter();
+        if (!connected)
+            PadReadout.Text = _padAdapter
+                ? "wireless adapter ready. turn the controller on. to pair a new one, hold the pair button on the adapter, then on the controller"
+                : "connect an xbox controller by cable, bluetooth or the wireless adapter";
         if (_page == 1) ShowPadHeader();
     }
 
@@ -264,8 +302,8 @@ public partial class MainWindow
         FirmwareLabel.Text = "POWER ..... ";
         if (_padSlot < 0)
         {
-            SetState("Warn", "NO CONTROLLER");
-            ModelText.Text = "--"; IdText.Text = "--"; FirmwareText.Text = "--";
+            SetState("Warn", _padAdapter ? "ADAPTER READY, NO CONTROLLER" : "NO CONTROLLER");
+            ModelText.Text = "--"; IdText.Text = _padAdapter ? "xbox wireless adapter" : "--"; FirmwareText.Text = "--";
             BatteryIcon.Text = BatteryArt(0);
             BatteryIcon.Foreground = BatteryPct.Foreground = (Brush)FindResource("Muted");
             BatteryPct.Text = "--";
@@ -273,9 +311,11 @@ public partial class MainWindow
             return;
         }
         bool wired = _padBatteryType == 1, known = _padBatteryType > 0;
-        SetState("Accent", !known ? "CONTROLLER ONLINE" : wired ? "CONTROLLER / CABLE" : "CONTROLLER / WIRELESS");
+        // Windows doesn't say whether a wireless controller came in through the adapter or Bluetooth, so the adapter is
+        // only named when it's plugged in, as the likely route.
+        SetState("Accent", !known ? "CONTROLLER ONLINE" : wired ? "CONTROLLER / CABLE" : _padAdapter ? "CONTROLLER / ADAPTER" : "CONTROLLER / WIRELESS");
         ModelText.Text = "XBOX CONTROLLER";
-        IdText.Text = "xinput slot " + (_padSlot + 1);
+        IdText.Text = "xinput slot " + (_padSlot + 1) + (_padAdapter ? "  adapter ready" : "");
 
         // Windows only reports four rough battery levels for a controller, and none at all while it's on a cable
         string word = _padBatteryLevel switch { 0 => "EMPTY", 1 => "LOW", 2 => "MED", _ => "FULL" };
