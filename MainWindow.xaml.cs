@@ -150,7 +150,7 @@ public partial class MainWindow : Window
             {
                 await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 SaveScreenshot(Root, _shot);
-                System.IO.File.WriteAllText(System.IO.Path.ChangeExtension(_shot, null) + "-scale.txt", $"layout {(_tall ? "tall" : "wide")}, scale {Scale.ScaleX:F2}, text boost {_fontBoost:F2}, text on screen {Scale.ScaleX * _fontBoost:F2} of normal");
+                System.IO.File.WriteAllText(System.IO.Path.ChangeExtension(_shot, null) + "-scale.txt", $"layout {(_tall ? "tall" : "wide")}, scale {Scale.ScaleX:F2}, text boost {_fontBoost:F2}, text on screen {Scale.ScaleX * _fontBoost:F2} of normal; host {ScaleHost.Width:F0}x{ScaleHost.Height:F0}, content needs {ContentNeeds():F0}");
                 // --battery also captures the history dropdown, which lives in its own pop-up window
                 if (args.Contains("--battery"))
                 {
@@ -494,6 +494,7 @@ public partial class MainWindow : Window
     // ---------- window: no title bar, own buttons, contents shrink with the window ----------
     // Two arrangements of the same boxes: wide (two columns side by side) and tall (one column, header stacked).
     const double WideWidth = 1150, TallWidth = 612, StripHeight = 30;
+    const double SwitchWidth = 960;   // windows narrower than this get the single-column layout (unless it would be far too small)
     bool _tall;
 
     void Root_SizeChanged(object sender, SizeChangedEventArgs e) => Relayout();
@@ -507,24 +508,28 @@ public partial class MainWindow : Window
         double w = Root.ActualWidth, h = Root.ActualHeight;
         if (w <= 0 || h <= 0) return;
 
-        // Bigger text makes the layout taller, which shrinks it further, which calls for bigger text: settle it in a
-        // few rounds. The boost moves in 5% steps, so this usually stops after one or two.
-        bool tall = _tall;
-        double k = 1;
-        for (int round = 0; round < 4; round++)
-        {
-            double wideHeight = NaturalHeight(false), tallHeight = NaturalHeight(true);
-            double wideScale = Math.Min(1, Math.Min(w / WideWidth, h / wideHeight));
-            double tallScale = Math.Min(1, Math.Min(w / TallWidth, h / tallHeight));
-            // whichever shows the interface larger wins; when both fit at full size, a window taller than it is wide goes tall
-            tall = tallScale > wideScale + 0.001 || (Math.Abs(tallScale - wideScale) <= 0.001 && h >= w);
-            k = tall ? tallScale : wideScale;
-            double boost = BoostFor(k);
-            if (boost == _fontBoost) break;
-            ApplyFontBoost(boost);
-        }
+        // Work out each arrangement with its own text boost, then compare how big the text would actually be on screen.
+        var wide = Settle(false, w, h);
+        var single = Settle(true, w, h);
+        double wideText = wide.Scale * wide.Boost, singleText = single.Scale * single.Boost;
+        // Narrower than SwitchWidth, the single column is used as long as its text is at least 75% as big as side by side
+        // would give; so a narrowing window switches early, but a short one doesn't end up with tiny text.
+        // Otherwise whichever shows bigger text wins; on a tie, a window taller than it is wide goes single column.
+        bool tall = (w < SwitchWidth && singleText >= wideText * 0.75)
+                    || singleText > wideText + 0.001 || (Math.Abs(singleText - wideText) <= 0.001 && h >= w);
+        var (k, boost) = tall ? single : wide;
+        if (boost != _fontBoost) ApplyFontBoost(boost);
 
         SetArrangement(tall);
+        // The height was measured at the arrangement's own width, but it's laid out across the whole window, where a
+        // few parts come out taller. Check the real thing and shrink a little more if it doesn't fit.
+        for (int check = 0; check < 3; check++)
+        {
+            ScaleHost.Width = w / k;
+            double needs = ContentNeeds();
+            if (needs <= h / k + 0.5) break;
+            k = h / needs;
+        }
         Scale.ScaleX = Scale.ScaleY = k;
         // drop-down lists open in their own window, outside the scaled layout, so they get the same scale applied separately
         var popupScale = new ScaleTransform(k, k);
@@ -534,6 +539,37 @@ public partial class MainWindow : Window
         ScaleHost.Height = h / k;
         // keep the drag area matched to the strip, which shrinks with everything else
         if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is { } chrome) chrome.CaptionHeight = StripHeight * k;
+    }
+
+    /// <summary>
+    /// The scale and text boost one arrangement settles on in a window of this size. Bigger text makes the layout taller,
+    /// which shrinks it further, which calls for bigger text, so it takes a few rounds; the boost moves in 5% steps, so
+    /// this usually stops after one or two.
+    /// </summary>
+    (double Scale, double Boost) Settle(bool tall, double w, double h)
+    {
+        double boost = _fontBoost, k = 1, measuredAt = boost;
+        for (int round = 0; round < 4; round++)
+        {
+            if (boost != _fontBoost) ApplyFontBoost(boost);
+            k = Math.Min(1, Math.Min(w / (tall ? TallWidth : WideWidth), h / NaturalHeight(tall)));
+            measuredAt = boost;
+            double next = BoostFor(k);
+            if (next == boost) break;
+            // if it's bouncing between two steps, settle on the smaller boost, which is sure to fit
+            if (round >= 1 && next > boost) break;
+            boost = next;
+        }
+        // the scale always belongs to the boost it was measured with, so the content is sure to fit
+        return (k, measuredAt);
+    }
+
+    /// <summary>For checking: how tall the current content wants to be at the width it's actually laid out at.</summary>
+    double ContentNeeds()
+    {
+        var root = (FrameworkElement)ScaleHost.Children[1];
+        root.Measure(new Size(ScaleHost.Width, double.PositiveInfinity));
+        return root.DesiredSize.Height + StripHeight;
     }
 
     /// <summary>How tall an arrangement is at its own width and full size.</summary>
