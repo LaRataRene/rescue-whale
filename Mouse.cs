@@ -12,7 +12,7 @@ public sealed class Mouse(ILink link)
     const byte CmdOnline = 0x03, CmdBattery = 0x04, CmdWrite = 0x07, CmdRead = 0x08, CmdVersion = 0x12, CmdDongleVersion = 0x1D;
     // settings memory addresses
     const int APolling = 0x00, ADpiCount = 0x02, ADpiIndex = 0x04, ALod = 0x0A, ADpi = 0x0C, ADpiColor = 0x2C, AKeys = 0x60,
-              ADebounce = 0xA9, AMotionSync = 0xAB, ASleep = 0xAD, AAngle = 0xAF, ARipple = 0xB1, ASensorMode = 0xB9, Size = 0xC0;
+              ADebounce = 0xA9, AMotionSync = 0xAB, ASleep = 0xAD, AAngle = 0xAF, ARipple = 0xB1, ASensorMode = 0xB9, ADpiLight = 0x52, Size = 0xC0;
 
     const byte CmdModelId = 0x10;
     /// <summary>Models identified so far, by (customer ID, model ID). Add entries as more mice are tested.</summary>
@@ -96,6 +96,8 @@ public sealed class Mouse(ILink link)
     public int AngleSnap => Pair(AAngle);
     public int Ripple => Pair(ARipple);
     public int SensorMode => Pair(ASensorMode);
+    /// <summary>Whether the DPI stage light is on: 0 off, 1 on. Confirmed both ways on the X8 Ultra.</summary>
+    public int DpiLight => Pair(ADpiLight);
     public int Dpi(int i) => DecodeDpi(_f, ADpi + 4 * i);
     public (byte R, byte G, byte B) DpiColor(int i) => (_f[ADpiColor + 4 * i], _f[ADpiColor + 4 * i + 1], _f[ADpiColor + 4 * i + 2]);
     public KeyFn Key(int i) => new(_f[AKeys + 4 * i], _f[AKeys + 4 * i + 1], _f[AKeys + 4 * i + 2]);
@@ -121,6 +123,7 @@ public sealed class Mouse(ILink link)
     public Task<bool> SetAngleSnap(bool on) => WritePair(AAngle, on ? 1 : 0);
     public Task<bool> SetRipple(bool on) => WritePair(ARipple, on ? 1 : 0);
     public Task<bool> SetSensorMode(int v) => WritePair(ASensorMode, v);
+    public Task<bool> SetDpiLight(bool on) => WritePair(ADpiLight, on ? 1 : 0);
     public Task<bool> SetDpi(int i, int dpi) => Write(ADpi + 4 * i, EncodeDpi(dpi));
     public Task<bool> SetDpiColor(int i, byte r, byte g, byte b) => Write(ADpiColor + 4 * i, Quad(r, g, b));
     public Task<bool> SetKey(int i, KeyFn k) => Write(AKeys + 4 * i, Quad(k.Type, k.P1, k.P2));
@@ -169,7 +172,7 @@ public sealed class DemoLink : ILink
     {
         void P(int a, int v) { _f[a] = (byte)v; _f[a + 1] = (byte)(0x55 - v); }
         void Q(int a, byte x, byte y, byte z) { _f[a] = x; _f[a + 1] = y; _f[a + 2] = z; _f[a + 3] = (byte)(0x55 - x - y - z); }
-        P(0x00, 1); P(0x02, 4); P(0x04, 1); P(0x0A, 1); P(0xA9, 4); P(0xAB, 1); P(0xAD, 6); P(0xAF, 0); P(0xB1, 0); P(0xB9, 1);
+        P(0x00, 1); P(0x02, 4); P(0x04, 1); P(0x0A, 1); P(0xA9, 4); P(0xAB, 1); P(0xAD, 6); P(0xAF, 0); P(0xB1, 0); P(0xB9, 1); P(0x52, 1);
         int[] dpi = [800, 1600, 3200, 6400, 12000, 26000];
         (byte, byte, byte)[] col = [(255, 0, 0), (0, 255, 0), (0, 255, 255), (0, 0, 255), (255, 0, 255), (255, 0, 0)];
         for (int i = 0; i < 6; i++) { Mouse.EncodeDpi(dpi[i]).CopyTo(_f, 0x0C + 4 * i); Q(0x2C + 4 * i, col[i].Item1, col[i].Item2, col[i].Item3); }

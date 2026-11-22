@@ -661,6 +661,7 @@ public partial class MainWindow : Window
             SwMotion.IsChecked = m.MotionSync == 1;
             SwAngle.IsChecked = m.AngleSnap == 1;
             SwRipple.IsChecked = m.Ripple == 1;
+            SwDpiLight.IsChecked = m.DpiLight == 1;
             DebounceSlider.Value = Math.Max(0, m.Debounce);
             DebounceText.Text = Math.Max(0, m.Debounce) + " MS";
 
@@ -797,6 +798,7 @@ public partial class MainWindow : Window
         bool on = sw.IsChecked == true;
         if (sw == SwMotion) Apply(m => m.SetMotionSync(on), "Motion sync");
         else if (sw == SwAngle) Apply(m => m.SetAngleSnap(on), "Angle snapping");
+        else if (sw == SwDpiLight) Apply(m => m.SetDpiLight(on), "DPI light");
         else Apply(m => m.SetRipple(on), "Ripple control");
     }
 
