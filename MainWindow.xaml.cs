@@ -150,6 +150,7 @@ public partial class MainWindow : Window
             {
                 await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 SaveScreenshot(Root, _shot);
+                System.IO.File.WriteAllText(System.IO.Path.ChangeExtension(_shot, null) + "-scale.txt", $"layout {(_tall ? "tall" : "wide")}, scale {Scale.ScaleX:F2}, text boost {_fontBoost:F2}, text on screen {Scale.ScaleX * _fontBoost:F2} of normal");
                 // --battery also captures the history dropdown, which lives in its own pop-up window
                 if (args.Contains("--battery"))
                 {
@@ -506,12 +507,22 @@ public partial class MainWindow : Window
         double w = Root.ActualWidth, h = Root.ActualHeight;
         if (w <= 0 || h <= 0) return;
 
-        double wideHeight = NaturalHeight(false), tallHeight = NaturalHeight(true);
-        double wideScale = Math.Min(1, Math.Min(w / WideWidth, h / wideHeight));
-        double tallScale = Math.Min(1, Math.Min(w / TallWidth, h / tallHeight));
-        // whichever shows the interface larger wins; when both fit at full size, a window taller than it is wide goes tall
-        bool tall = tallScale > wideScale + 0.001 || (Math.Abs(tallScale - wideScale) <= 0.001 && h >= w);
-        double k = tall ? tallScale : wideScale;
+        // Bigger text makes the layout taller, which shrinks it further, which calls for bigger text: settle it in a
+        // few rounds. The boost moves in 5% steps, so this usually stops after one or two.
+        bool tall = _tall;
+        double k = 1;
+        for (int round = 0; round < 4; round++)
+        {
+            double wideHeight = NaturalHeight(false), tallHeight = NaturalHeight(true);
+            double wideScale = Math.Min(1, Math.Min(w / WideWidth, h / wideHeight));
+            double tallScale = Math.Min(1, Math.Min(w / TallWidth, h / tallHeight));
+            // whichever shows the interface larger wins; when both fit at full size, a window taller than it is wide goes tall
+            tall = tallScale > wideScale + 0.001 || (Math.Abs(tallScale - wideScale) <= 0.001 && h >= w);
+            k = tall ? tallScale : wideScale;
+            double boost = BoostFor(k);
+            if (boost == _fontBoost) break;
+            ApplyFontBoost(boost);
+        }
 
         SetArrangement(tall);
         Scale.ScaleX = Scale.ScaleY = k;
@@ -721,6 +732,7 @@ public partial class MainWindow : Window
         }
         finally { _loading = false; }
         UpdateChrome();
+        if (_fontBoost != 1) ApplyFontBoost(_fontBoost);   // the stage cards are rebuilt above, so give their text the current boost
         Relayout();   // the DPI stage cards add height once they're filled in, which changes how much each arrangement needs
     }
 

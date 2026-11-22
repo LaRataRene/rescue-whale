@@ -121,6 +121,7 @@ public partial class MainWindow
         if (_page != 1) StopVibration();
         if (_page == 1) { _padTicks = 0; PadTick(); }
         UpdateChrome();
+        if (_fontBoost != 1) ApplyFontBoost(_fontBoost);   // the page just shown may have text that hasn't been boosted yet
         Relayout();
     }
 

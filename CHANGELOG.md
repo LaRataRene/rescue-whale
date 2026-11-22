@@ -23,6 +23,7 @@ All notable changes to Rescue Whale are listed here, newest first.
 
 - Click response moved from `[ POWER ]` to `[ BUTTONS ]`, since it sets how all the buttons behave.
 - Long dropdown lists now scroll, and shrink along with the window when it is made smaller.
+- **Bigger text on small windows.** When the window is smaller than the layout needs, text is enlarged by up to 50% to make up for most of the shrinking, so it stays readable. Setting names widen with their text, and rows of choices wrap onto a second line instead of running off the edge. The layout is more crowded at the smallest sizes.
 - Rescue Whale keeps a third file on your PC: your controller key mapping, in `%AppData%\RescueWhale\controller.txt`.
 
 ### Known limits
