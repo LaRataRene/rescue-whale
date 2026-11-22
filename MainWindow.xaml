@@ -173,16 +173,11 @@
                     </HeaderedContentControl>
 
                     <HeaderedContentControl Style="{StaticResource Box}" Header="[ POWER ]"
-                                            Tag="&gt; sleep after: how long the mouse sits still before it sleeps. shorter saves battery. it wakes on a move or a click.&#10;&gt; click response: the debounce time. lower is faster. if single clicks start registering twice, raise it one step at a time.">
+                                            Tag="&gt; sleep after: how long the mouse sits still before it sleeps. shorter saves battery. it wakes on a move or a click.">
                         <StackPanel>
                             <DockPanel>
                                 <TextBlock Text="SLEEP AFTER" Width="150" Style="{StaticResource Label}"/>
                                 <StackPanel x:Name="SleepSeg" Orientation="Horizontal"/>
-                            </DockPanel>
-                            <DockPanel Margin="0,12,0,0">
-                                <TextBlock Text="CLICK RESPONSE" Width="150" Style="{StaticResource Label}"/>
-                                <TextBlock x:Name="DebounceText" DockPanel.Dock="Right" Width="52" TextAlignment="Right" Style="{StaticResource Label}" Foreground="{DynamicResource Accent}"/>
-                                <Slider x:Name="DebounceSlider" Minimum="0" Maximum="30" IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center" ValueChanged="DebounceSlider_ValueChanged"/>
                             </DockPanel>
                         </StackPanel>
                     </HeaderedContentControl>
@@ -201,9 +196,14 @@
 
                 <StackPanel x:Name="ColRight" Grid.Column="2">
                     <HeaderedContentControl Style="{StaticResource Box}" Header="[ BUTTONS ]"
-                                            Tag="&gt; pick what each button does. one button always has to stay left click.&#10;&gt; dpi: next stage loops through your dpi stages. polling rate: next steps through the polling rates.&#10;&gt; combos, media keys, rapid-fire and macros set in the manufacturer's software show as custom and are left untouched.">
+                                            Tag="&gt; pick what each button does. one button always has to stay left click.&#10;&gt; dpi: next stage loops through your dpi stages. polling rate: next steps through the polling rates.&#10;&gt; combos, media keys, rapid-fire and macros set in the manufacturer's software show as custom and are left untouched.&#10;&gt; click response: the debounce time, for every button. lower is faster. if single clicks start registering twice, raise it one step at a time.">
                         <StackPanel>
                             <StackPanel x:Name="KeyRows"/>
+                            <DockPanel Margin="0,12,0,0">
+                                <TextBlock Text="CLICK RESPONSE" Width="150" Style="{StaticResource Label}"/>
+                                <TextBlock x:Name="DebounceText" DockPanel.Dock="Right" Width="52" TextAlignment="Right" Style="{StaticResource Label}" Foreground="{DynamicResource Accent}"/>
+                                <Slider x:Name="DebounceSlider" Minimum="0" Maximum="30" IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center" ValueChanged="DebounceSlider_ValueChanged"/>
+                            </DockPanel>
                         </StackPanel>
                     </HeaderedContentControl>
 

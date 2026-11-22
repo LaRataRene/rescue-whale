@@ -17,6 +17,7 @@ All notable changes to Rescue Whale are listed here, newest first.
 
 ### Changed
 
+- Click response moved from `[ POWER ]` to `[ BUTTONS ]`, since it sets how all the buttons behave.
 - Long dropdown lists now scroll.
 - Rescue Whale keeps a third file on your PC: your controller key mapping, in `%AppData%\RescueWhale\controller.txt`.
 
