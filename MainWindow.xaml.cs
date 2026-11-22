@@ -77,10 +77,14 @@ public partial class MainWindow : Window
         _theme.Apply();
 
         InitializeComponent();
-        _loading = true;
-        foreach (var t in Theme.All) ThemeBox.Items.Add(t.Name);
-        ThemeBox.SelectedIndex = Array.IndexOf(Theme.All, _theme);
-        _loading = false;
+        // theme choices live in the options panel, one button per theme
+        foreach (var t in Theme.All)
+        {
+            var theme = t;
+            var rb = new RadioButton { Style = (Style)FindResource("Seg"), Content = t.Name, GroupName = "theme", IsChecked = t == _theme, Margin = new Thickness(0, 0, 0, 6) };
+            rb.Checked += (_, _) => SetTheme(theme);
+            OptTheme.Children.Add(rb);
+        }
         // A whale's tail mid-swing, flinging drops off the high fluke, with a life ring around it at the waterline.
         // Two layers with identical spacing: the tail and water, then the ring on top in its own color.
         Logo.Text = """
@@ -574,10 +578,10 @@ public partial class MainWindow : Window
         DwmSetWindowAttribute(hwnd, 20, ref dark, 4);
     }
 
-    void ThemeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    void SetTheme(Theme theme)
     {
-        if (_loading || ThemeBox.SelectedIndex < 0) return;
-        _theme = Theme.All[ThemeBox.SelectedIndex];
+        if (_loading || theme == _theme) return;
+        _theme = theme;
         _theme.Apply();
         _theme.Save();
         ApplyTitleBar();

@@ -32,6 +32,10 @@
                         <StackPanel Width="560">
                             <TextBlock Text="[ OPTIONS ]" Foreground="{DynamicResource Warn}" FontWeight="Bold"/>
                             <DockPanel Margin="0,14,0,0">
+                                <TextBlock Text="THEME" Width="180" Style="{StaticResource Label}" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                                <WrapPanel x:Name="OptTheme"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,9,0,0">
                                 <TextBlock Text="BATTERY ICON" Width="180" Style="{StaticResource Label}"/>
                                 <CheckBox x:Name="OptBatteryIcon" Style="{StaticResource Switch}" HorizontalAlignment="Left" Click="OptIcon_Click"/>
                             </DockPanel>
@@ -334,8 +338,6 @@
             </Border>
 
             <DockPanel Grid.Row="2" Margin="0,4,0,0">
-                <ComboBox x:Name="ThemeBox" DockPanel.Dock="Right" Width="150" Height="24" SelectionChanged="ThemeBox_SelectionChanged"/>
-                <TextBlock DockPanel.Dock="Right" Text="THEME " Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="16,0,0,0"/>
                 <TextBlock x:Name="StatusText" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                            Text="&gt; changes save to the mouse as you make them_"/>
             </DockPanel>
