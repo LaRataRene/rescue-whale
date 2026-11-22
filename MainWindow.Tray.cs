@@ -24,7 +24,7 @@ public partial class MainWindow
     bool _exiting, _trayHintShown;
 
     // All tray icons are plain grayscale, and follow the taskbar's own light or dark setting:
-    // light gray ink on a dark taskbar, dark gray ink on a light one, with a dimmer gray for the empty part of a level bar.
+    // light gray ink on a dark taskbar, dark gray ink on a light one.
     static bool LightTaskbar
     {
         get
@@ -38,8 +38,6 @@ public partial class MainWindow
         }
     }
     static SD.Color TrayInk => LightTaskbar ? SD.Color.FromArgb(0x1C, 0x1C, 0x1C) : SD.Color.FromArgb(0xE8, 0xE8, 0xE8);
-    static SD.Color TrayDim => LightTaskbar ? SD.Color.FromArgb(0xB4, 0xB4, 0xB4) : SD.Color.FromArgb(0x70, 0x70, 0x70);
-    static SD.Color TrayEdge => LightTaskbar ? SD.Color.FromArgb(110, 255, 255, 255) : SD.Color.FromArgb(150, 0, 0, 0);
 
     void InitTray()
     {
@@ -123,12 +121,12 @@ public partial class MainWindow
             string info = $"{name}:  {m.Battery}%  ·  {rate}";
             int battery = m.Battery;
 
-            if (_opt.BatteryIcon) SetTray(_trayMouse, $"b{battery}{LightTaskbar}", () => TextIcon(battery.ToString(), battery), tip, info);
+            if (_opt.BatteryIcon) SetTray(_trayMouse, $"b{battery}{LightTaskbar}", () => TextIcon(battery.ToString(), "%"), tip, info);
             else _trayMouse.Icon.Visible = false;
 
             // 8000 -> 8K, 1000 -> 1K, 500 -> 500
             string shortRate = m.PollingHz >= 1000 ? m.PollingHz / 1000 + "K" : m.PollingHz > 0 ? m.PollingHz.ToString() : "?";
-            if (_opt.PollingIcon) SetTray(_trayRate, "r" + shortRate + LightTaskbar, () => TextIcon(shortRate, null), tip, info);
+            if (_opt.PollingIcon) SetTray(_trayRate, "r" + shortRate + LightTaskbar, () => TextIcon(shortRate), tip, info);
             else _trayRate.Icon.Visible = false;
 
             CheckBatteryAlert(m);
@@ -141,7 +139,7 @@ public partial class MainWindow
             string level = !known ? "unknown" : wired ? "on cable" : _padBatteryLevel switch { 0 => "empty", 1 => "low", 2 => "medium", _ => "full" };
             string tip = $"Xbox controller\nPower: {level}";
             int padLevel = _padBatteryLevel;
-            if (wired || !known) SetTray(_trayPad, "p" + level + LightTaskbar, () => TextIcon(wired ? "USB" : "?", null), tip, "Xbox controller:  " + level);
+            if (wired || !known) SetTray(_trayPad, "p" + level + LightTaskbar, () => TextIcon(wired ? "USB" : "?"), tip, "Xbox controller:  " + level);
             else SetTray(_trayPad, "p" + level + LightTaskbar, () => TrayBatteryIcon(padLevel), tip, "Xbox controller:  " + level + " battery");
         }
         else _trayPad.Icon.Visible = false;
@@ -198,44 +196,55 @@ public partial class MainWindow
     static int TraySize => Math.Max(16, WF.SystemInformation.SmallIconSize.Width);
 
     /// <summary>
-    /// Draws text as large as fits the tray icon in light gray. With a level (0-100) it also draws a thin bar along the
-    /// bottom, filled to that level, which is what tells the battery icon apart from the polling rate icon at a glance.
+    /// Draws text as large as fits the tray icon, in Bahnschrift SemiBold Condensed (part of Windows; narrow, made for small sizes) with the glyphs snapped to whole pixels so it stays
+    /// crisp on a small taskbar. An optional suffix (the battery's %) is drawn smaller, raised beside the main text.
     /// </summary>
-    static IntPtr TextIcon(string text, int? level)
+    static IntPtr TextIcon(string text, string suffix = "")
     {
         int s = TraySize;
         using var bmp = new SD.Bitmap(s, s);
         using var g = SD.Graphics.FromImage(bmp);
-        g.SmoothingMode = SD.Drawing2D.SmoothingMode.AntiAlias;
         g.Clear(SD.Color.Transparent);
+        g.TextRenderingHint = SD.Text.TextRenderingHint.AntiAliasGridFit;   // hinted: sharp edges at tiny sizes
 
-        float barH = level.HasValue ? Math.Max(2f, s * 0.14f) : 0, gap = level.HasValue ? Math.Max(1f, s * 0.08f) : 0;
-        float textH = s - barH - gap;
-
+        // a condensed face fits more height into the square; Segoe UI bold if it is missing
         SD.FontFamily family;
-        try { family = new SD.FontFamily("Cascadia Mono"); } catch { family = SD.FontFamily.GenericMonospace; }
-        using var path = new SD.Drawing2D.GraphicsPath();
-        path.AddString(text, family, (int)SD.FontStyle.Bold, 100, SD.Point.Empty, SD.StringFormat.GenericTypographic);
-        var b = path.GetBounds();
-        float k = Math.Min((s - 1) / b.Width, (textH - 1) / b.Height);
-        using (var fit = new SD.Drawing2D.Matrix())
-        {
-            fit.Translate(s / 2f, textH / 2f);
-            fit.Scale(k, k);
-            fit.Translate(-(b.X + b.Width / 2), -(b.Y + b.Height / 2));
-            path.Transform(fit);
-        }
-        using var edge = new SD.Pen(TrayEdge, Math.Max(1f, s / 16f)) { LineJoin = SD.Drawing2D.LineJoin.Round };
-        g.DrawPath(edge, path);
-        using var ink = new SD.SolidBrush(TrayInk);
-        g.FillPath(ink, path);
+        SD.FontStyle style = SD.FontStyle.Regular;
+        try { family = new SD.FontFamily("Bahnschrift SemiBold Condensed"); }
+        catch { family = new SD.FontFamily("Segoe UI"); style = SD.FontStyle.Bold; }
+        var format = SD.StringFormat.GenericTypographic;
 
-        if (level is int percent)
+        // the exact ink bounds of a string at a given size, so it can be placed without the font's built-in spacing
+        static SD.RectangleF Ink(string str, SD.FontFamily f, SD.FontStyle st, float em, SD.StringFormat fmt)
         {
-            float y = s - barH, filled = s * Math.Clamp(percent, 0, 100) / 100f;
-            using var dim = new SD.SolidBrush(TrayDim);
-            g.FillRectangle(dim, 0, y, s, barH);
-            g.FillRectangle(ink, 0, y, filled, barH);
+            if (str.Length == 0) return SD.RectangleF.Empty;
+            using var p = new SD.Drawing2D.GraphicsPath();
+            p.AddString(str, f, (int)st, em, SD.PointF.Empty, fmt);
+            return p.GetBounds();
+        }
+
+        // largest size at which the text (plus the smaller suffix) still fits the icon
+        float em = s * 1.3f, sufEm = 0, gap = 0;
+        SD.RectangleF main = default, suf = default;
+        for (; em > 4; em -= 0.25f)
+        {
+            sufEm = em * 0.55f;
+            gap = suffix.Length > 0 ? Math.Max(0.5f, em * 0.04f) : 0;
+            main = Ink(text, family, style, em, format);
+            suf = Ink(suffix, family, style, sufEm, format);
+            if (main.Width + gap + suf.Width <= s && main.Height <= s) break;
+        }
+
+        float total = main.Width + gap + suf.Width;
+        float x = (float)Math.Round((s - total) / 2f), top = (float)Math.Round((s - main.Height) / 2f);
+        using var ink = new SD.SolidBrush(TrayInk);
+        using (var font = new SD.Font(family, em, style, SD.GraphicsUnit.Pixel))
+            g.DrawString(text, font, ink, x - main.X, top - main.Y, format);
+        if (suffix.Length > 0)
+        {
+            using var sfont = new SD.Font(family, sufEm, style, SD.GraphicsUnit.Pixel);
+            // raised: its top lines up with the top of the main text
+            g.DrawString(suffix, sfont, ink, x + main.Width + gap - suf.X, top - suf.Y, format);
         }
         return bmp.GetHicon();
     }
