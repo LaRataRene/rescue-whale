@@ -105,7 +105,7 @@ public partial class MainWindow
 
         _padTimer.Tick += (_, _) => PadTick();
         Closed += (_, _) => { ReleasePadKeys(); StopVibration(); };
-        if (_padMapping) _padTimer.Start();
+        _padTimer.Start();   // always running, so the tray knows when a controller is connected
         // --page controller opens straight on the controller page
         int pageAt = Array.IndexOf(args, "--page");
         if (pageAt >= 0 && pageAt + 1 < args.Length && args[pageAt + 1].StartsWith("c", StringComparison.OrdinalIgnoreCase)) PageController.IsChecked = true;
@@ -118,7 +118,7 @@ public partial class MainWindow
         _page = sender == PageController ? 1 : 0;
         Pages.Visibility = _page == 0 ? Visibility.Visible : Visibility.Collapsed;
         PadPage.Visibility = _page == 1 ? Visibility.Visible : Visibility.Collapsed;
-        if (_page == 1 || _padMapping) _padTimer.Start(); else { _padTimer.Stop(); StopVibration(); }
+        if (_page != 1) StopVibration();
         if (_page == 1) { _padTicks = 0; PadTick(); }
         UpdateChrome();
         Relayout();
@@ -294,6 +294,7 @@ public partial class MainWindow
                 ? "wireless adapter ready. turn the controller on. to pair a new one, hold the pair button on the adapter, then on the controller"
                 : "connect an xbox controller by cable, bluetooth or the wireless adapter";
         if (_page == 1) ShowPadHeader();
+        UpdateTray();
     }
 
     /// <summary>On the controller page the header's status box and battery gauge describe the controller instead of the mouse.</summary>
@@ -376,7 +377,7 @@ public partial class MainWindow
     {
         _padMapping = PadMapSwitch.IsChecked == true;
         if (!_padMapping) ReleasePadKeys();
-        if (_padMapping || _page == 1) _padTimer.Start(); else _padTimer.Stop();
+        _padTimer.Start();
         SavePadSettings();
         Status(_padMapping ? "controller mapping on: mapped buttons now send keys to whatever window is in front" : "controller mapping off");
     }

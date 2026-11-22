@@ -6,6 +6,7 @@
     <Product>Rescue Whale</Product>
     <Description>Open-source settings app for Compx-based gaming mice</Description>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>RescueWhale</RootNamespace>
@@ -15,5 +16,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Resource Include="icon.ico" />
+    <!-- Windows Forms is only used for the tray icons; keep its names out of the WPF code -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
   </ItemGroup>
 </Project>
