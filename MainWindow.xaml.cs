@@ -163,6 +163,22 @@ public partial class MainWindow : Window
                     SaveScreenshot(BatteryPanel, System.IO.Path.ChangeExtension(_shot, null) + "-battery.png");
                     BatteryPopup.IsOpen = false;
                 }
+                // --dropdown also captures the first button's open drop-down list, next to its box
+                if (args.Contains("--dropdown") && _keyBoxes.Count > 0)
+                {
+                    var box = _keyBoxes[0];
+                    box.IsDropDownOpen = true;
+                    await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    if (box.Template.FindName("PART_Popup", box) is System.Windows.Controls.Primitives.Popup { Child: FrameworkElement list })
+                    {
+                        DependencyObject root = list;
+                        while (VisualTreeHelper.GetParent(root) is { } up) root = up;
+                        if (root is FrameworkElement popupRoot) SaveScreenshot(popupRoot, System.IO.Path.ChangeExtension(_shot, null) + "-dropdown.png");
+                        System.IO.File.WriteAllText(System.IO.Path.ChangeExtension(_shot, null) + "-dropdown.txt",
+                            $"box on screen {box.ActualWidth * Scale.ScaleX:F0} px wide; list on screen {list.ActualWidth * ((list.LayoutTransform as ScaleTransform)?.ScaleX ?? 1):F0} px wide; scale {Scale.ScaleX:F2}");
+                    }
+                    box.IsDropDownOpen = false;
+                }
                 // --options also captures the options panel
                 if (args.Contains("--options"))
                 {
@@ -499,6 +515,10 @@ public partial class MainWindow : Window
 
         SetArrangement(tall);
         Scale.ScaleX = Scale.ScaleY = k;
+        // drop-down lists open in their own window, outside the scaled layout, so they get the same scale applied separately
+        var popupScale = new ScaleTransform(k, k);
+        popupScale.Freeze();
+        Application.Current.Resources["PopupScale"] = popupScale;
         ScaleHost.Width = w / k;
         ScaleHost.Height = h / k;
         // keep the drag area matched to the strip, which shrinks with everything else

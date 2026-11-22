@@ -352,7 +352,8 @@
                             <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom"
                                    AllowsTransparency="True" Focusable="False">
                                 <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Text}" BorderThickness="1"
-                                        Margin="0,2,0,8" Padding="2" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="380">
+                                        Margin="0,2,0,8" Padding="2" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="380"
+                                        LayoutTransform="{DynamicResource PopupScale}">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                         <ItemsPresenter/>
                                     </ScrollViewer>

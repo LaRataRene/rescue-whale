@@ -32,7 +32,7 @@ A small, open-source settings app for gaming mice built on the Compx chipset (US
 - **Power:** sleep timer and click response (debounce) time
 - **Receiver light:** what the wireless receiver's light shows: nothing, the polling rate, the battery level, or a low-battery warning only
 - **Tips:** an `[i]` button on every section explains its settings
-- **Themes:** eight color schemes, five of them pure black for OLED screens
+- **Themes:** nine color schemes, five of them pure black for OLED screens
 - **Battery:** a gauge and percentage, colored by level. Click it for a graph of how the battery drained and recharged over the last day, week, or month.
 - **Status:** connection, model, device ID, and firmware version
 - **Xbox controller page:** a live tester for every button, stick and trigger, the power state, a vibration test, and mapping of controller buttons to keyboard keys or mouse actions. Nothing is written to the controller; the mapping works only while Rescue Whale is open. Tested with an Xbox Series X|S controller on a USB cable.

@@ -15,14 +15,14 @@ All notable changes to Rescue Whale are listed here, newest first.
 - **DPI light on/off.** A switch at the end of the `LED` row in `[ DPI STAGES ]` turns the mouse's DPI stage light off for every stage, keeping your colors for when it's turned back on.
 - **Tray icons.** While Rescue Whale is running, connected devices get tray icons: the mouse's battery as a plain number; the mouse's polling rate (`8K`, `1K`, `500`…) as its own icon; and the controller's power (`USB` on a cable, or a battery filled to its level). They're plain grayscale in a narrow font that stays readable on a small taskbar, and follow the taskbar's light or dark setting. Hover any of them for the battery and polling rate; click to bring the window forward; right-click for a summary, Open, and Exit.
 - **Closing hides to the tray.** The window's close button now hides Rescue Whale to the tray so the icons stay up; choose Exit from a tray icon's menu to quit. With no device connected, the whale icon stays in the tray so the app can always be reopened. A one-time notice explains this the first time you close it.
-- **Options panel.** An `[ OPTIONS ]` button in the top strip opens a panel with the theme choice (moved here from the bottom of the window), switches for the battery icon and the polling rate icon (either, both or neither), a battery alert (a Windows notification when the mouse drops to 15, 20, 30 or 50%), whether the close button hides to the tray or quits, and whether Rescue Whale starts in the tray when you sign in. Choices are saved to `%AppData%\RescueWhale\options.txt`; starting with Windows adds an entry to your startup list.
+- **Options panel.** An `[ OPTIONS ]` button in the top strip opens a panel with the theme choice (moved here from the bottom of the window, and now with a ninth theme, pink & purple), switches for the battery icon and the polling rate icon (either, both or neither), a battery alert (a Windows notification when the mouse drops to 15, 20, 30 or 50%), whether the close button hides to the tray or quits, and whether Rescue Whale starts in the tray when you sign in. Choices are saved to `%AppData%\RescueWhale\options.txt`; starting with Windows adds an entry to your startup list.
 - **Live polling rate.** The polling rate box has a `LIVE` row that counts the reports the mouse actually sends while you move it, with a bar against the chosen rate and the peak from the last few seconds.
 - `--page controller` opens the app on the controller page.
 
 ### Changed
 
 - Click response moved from `[ POWER ]` to `[ BUTTONS ]`, since it sets how all the buttons behave.
-- Long dropdown lists now scroll.
+- Long dropdown lists now scroll, and shrink along with the window when it is made smaller.
 - Rescue Whale keeps a third file on your PC: your controller key mapping, in `%AppData%\RescueWhale\controller.txt`.
 
 ### Known limits

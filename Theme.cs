@@ -20,6 +20,7 @@ public sealed record Theme(string Name, string Bg, string Panel2, string Line, s
         new("OLED MONO",    "#000000", "#000000", "#3A3A3A", "#E4E4E4", "#8C8C8C", "#FFFFFF", "#000000", "#FFB627", "#FF5555"),
         new("OLED RED",     "#000000", "#000000", "#5A1414", "#FF5A5A", "#A83A3A", "#FFB0B0", "#000000", "#FFB627", "#FFE066"),
         new("AMBER",        "#0A0600", "#160E00", "#5A3C00", "#FFB000", "#A87400", "#FFD98A", "#0A0600", "#6FE3FF", "#FF5555"),
+        new("PINK & PURPLE", "#12061A", "#1E0B2B", "#5B2A7A", "#FF7AC8", "#B05A9A", "#FFB3E0", "#1A0620", "#C8A2FF", "#FF5577"),
         new("PAPER",        "#F1EEE3", "#E5E1D3", "#A8A390", "#1F2A20", "#636B5C", "#000000", "#F1EEE3", "#9A4D00", "#B00020"),
     ];
 
