@@ -119,6 +119,7 @@ public partial class MainWindow : Window
         }
         BuildStaticControls();
         InitController(args);
+        InitPollingMeter();
         StripText.Text = "rescue whale v" + (GetType().Assembly.GetName().Version?.ToString(3) ?? "?");
 
         // battery history: kept on disk for a real mouse, made up in memory for demo mode
