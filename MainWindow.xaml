@@ -23,6 +23,39 @@
 
         <DockPanel Background="Transparent">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0" WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button x:Name="OptionsButton" Style="{StaticResource WinButton}" Content="[ OPTIONS ]" ToolTip="Tray and app options" Margin="0,0,14,0" Click="Options_Click"/>
+                <!-- app options: a drop-down panel under the OPTIONS button -->
+                <Popup x:Name="OptionsPopup" PlacementTarget="{Binding ElementName=OptionsButton}" Placement="Bottom" HorizontalOffset="-420" VerticalOffset="4"
+                       StaysOpen="False" AllowsTransparency="True" Closed="OptionsPopup_Closed">
+                    <Border x:Name="OptionsPanel" Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Warn}" BorderThickness="1" Padding="16,12" Margin="0,0,8,8"
+                            TextElement.FontFamily="Cascadia Mono, Cascadia Code, Consolas, Courier New" TextElement.Foreground="{DynamicResource Text}">
+                        <StackPanel Width="560">
+                            <TextBlock Text="[ OPTIONS ]" Foreground="{DynamicResource Warn}" FontWeight="Bold"/>
+                            <DockPanel Margin="0,14,0,0">
+                                <TextBlock Text="MOUSE TRAY ICON" Width="180" Style="{StaticResource Label}"/>
+                                <StackPanel x:Name="OptMouseIcon" Orientation="Horizontal"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,9,0,0">
+                                <TextBlock Text="CONTROLLER ICON" Width="180" Style="{StaticResource Label}"/>
+                                <StackPanel x:Name="OptPadIcon" Orientation="Horizontal"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,9,0,0">
+                                <TextBlock Text="BATTERY ALERT" Width="180" Style="{StaticResource Label}"/>
+                                <StackPanel x:Name="OptAlert" Orientation="Horizontal"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,9,0,0">
+                                <TextBlock Text="CLOSE BUTTON" Width="180" Style="{StaticResource Label}"/>
+                                <StackPanel x:Name="OptClose" Orientation="Horizontal"/>
+                            </DockPanel>
+                            <DockPanel Margin="0,9,0,0">
+                                <TextBlock Text="START WITH WINDOWS" Width="180" Style="{StaticResource Label}"/>
+                                <CheckBox x:Name="OptStartup" Style="{StaticResource Switch}" HorizontalAlignment="Left" Click="OptStartup_Click"/>
+                            </DockPanel>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,14,0,0" LineHeight="17"
+                                       Text="&gt; mouse tray icon: show the battery percentage, the polling rate that's set, or nothing. hover the icon for both.&#10;&gt; battery alert: a windows notification when the mouse drops to that level. it only works while rescue whale is running, in the window or the tray.&#10;&gt; close button: hide to the tray keeps the icons and the alert going; quit closes the app completely.&#10;&gt; start with windows: opens rescue whale in the tray when you sign in."/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
                 <Button Style="{StaticResource WinButton}" Content="[_]" ToolTip="Minimize" Click="Minimize_Click"/>
                 <Button x:Name="MaxButton" Style="{StaticResource WinButton}" Content="[^]" ToolTip="Maximize" Click="Maximize_Click"/>
                 <Button Style="{StaticResource WinCloseButton}" Content="[x]" ToolTip="Close" Click="Close_Click"/>

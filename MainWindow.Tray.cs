@@ -45,7 +45,7 @@ public partial class MainWindow
         // closing the window hides it to the tray; Exit in the tray menu, or Windows shutting down, really quits
         Closing += (_, e) =>
         {
-            if (_exiting) return;
+            if (_exiting || !_opt.HideOnClose) return;   // the close button can be set to quit instead
             e.Cancel = true;
             HideToTray();
         };
@@ -98,18 +98,26 @@ public partial class MainWindow
         if (_trayMouse == null || _trayPad == null) return;
 
         var m = _m;
-        if (m is { Online: true, Loaded: true } && m.Battery >= 0)
+        bool mouseReady = m is { Online: true, Loaded: true } && m.Battery >= 0;
+        if (mouseReady && _opt.MouseIcon != "off")
         {
-            var color = m.Charging ? TrayLight : m.Battery >= 50 ? TrayGreen : m.Battery >= 20 ? TrayAmber : TrayRed;
+            var color = m!.Charging ? TrayLight : m.Battery >= 50 ? TrayGreen : m.Battery >= 20 ? TrayAmber : TrayRed;
             string rate = m.PollingHz > 0 ? $"{m.PollingHz:N0} Hz" : "unknown";
             string name = m.Model != "" ? m.Model : "Mouse";
             string tip = $"{name}\nBattery {m.Battery}%{(m.Charging ? ", charging" : "")}\nPolling rate {rate}";
-            SetTray(_trayMouse, $"m{m.Battery}{m.Charging}", () => TextIcon(m.Battery.ToString(), color), tip,
-                    $"{name}:  {m.Battery}%  ·  {rate}");
+            string info = $"{name}:  {m.Battery}%  ·  {rate}";
+            if (_opt.MouseIcon == "polling")
+            {
+                // 8000 -> 8K, 1000 -> 1K, 500 -> 500
+                string shortRate = m.PollingHz >= 1000 ? m.PollingHz / 1000 + "K" : m.PollingHz > 0 ? m.PollingHz.ToString() : "?";
+                SetTray(_trayMouse, "r" + shortRate, () => TextIcon(shortRate, TrayLight), tip, info);
+            }
+            else SetTray(_trayMouse, $"m{m.Battery}{m.Charging}", () => TextIcon(m.Battery.ToString(), color), tip, info);
         }
         else _trayMouse.Icon.Visible = false;
+        if (mouseReady) CheckBatteryAlert(m!);
 
-        if (_padSlot >= 0)
+        if (_padSlot >= 0 && _opt.PadIcon)
         {
             bool wired = _padBatteryType == 1, known = _padBatteryType > 0;
             string level = !known ? "unknown" : wired ? "on cable" : _padBatteryLevel switch { 0 => "empty", 1 => "low", 2 => "medium", _ => "full" };
@@ -123,7 +131,29 @@ public partial class MainWindow
         }
         else _trayPad.Icon.Visible = false;
 
-        if (_trayApp != null) _trayApp.Icon.Visible = !IsVisible && !_trayMouse.Icon.Visible && !_trayPad.Icon.Visible;
+        // the whale icon: the way back when the window is hidden and no device icon is showing, or to carry an alert
+        if (_trayApp != null)
+            _trayApp.Icon.Visible = (!IsVisible && !_trayMouse.Icon.Visible && !_trayPad.Icon.Visible) || DateTime.UtcNow < _alertIconUntil;
+    }
+
+    bool _alertArmed = true;
+    DateTime _alertIconUntil;
+
+    /// <summary>
+    /// Shows a Windows notification once when the mouse drops to the chosen level, and gets ready to warn again after it's
+    /// been charged back above that level.
+    /// </summary>
+    void CheckBatteryAlert(Mouse m)
+    {
+        if (_opt.Alert <= 0 || _trayMouse == null || _trayApp == null) return;
+        if (m.Charging || m.Battery > _opt.Alert + 2) { _alertArmed = true; return; }   // a little margin so a wobbling reading can't re-trigger it
+        if (!_alertArmed || m.Battery > _opt.Alert) return;
+        _alertArmed = false;
+
+        var carrier = _trayMouse.Icon.Visible ? _trayMouse : _trayApp;
+        if (!carrier.Icon.Visible) { _alertIconUntil = DateTime.UtcNow.AddSeconds(30); carrier.Icon.Visible = true; }
+        string name = m.Model != "" ? m.Model : "Mouse";
+        carrier.Icon.ShowBalloonTip(8000, $"Mouse battery at {m.Battery}%", $"{name} has dropped to your {_opt.Alert}% alert level. Time to charge it soon.", WF.ToolTipIcon.Warning);
     }
 
     void SetTray(TrayItem t, string key, Func<IntPtr> draw, string tip, string info)

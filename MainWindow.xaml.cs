@@ -121,6 +121,7 @@ public partial class MainWindow : Window
         InitController(args);
         InitPollingMeter();
         InitTray();
+        InitOptions(args);
         StripText.Text = "rescue whale v" + (GetType().Assembly.GetName().Version?.ToString(3) ?? "?");
 
         // battery history: kept on disk for a real mouse, made up in memory for demo mode
@@ -156,6 +157,15 @@ public partial class MainWindow : Window
                     BatteryPopup.IsOpen = true;
                     await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                     SaveScreenshot(BatteryPanel, System.IO.Path.ChangeExtension(_shot, null) + "-battery.png");
+                    BatteryPopup.IsOpen = false;
+                }
+                // --options also captures the options panel
+                if (args.Contains("--options"))
+                {
+                    OptionsPopup.IsOpen = true;
+                    await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    SaveScreenshot(OptionsPanel, System.IO.Path.ChangeExtension(_shot, null) + "-options.png");
+                    OptionsPopup.IsOpen = false;
                 }
                 Close();
             }
