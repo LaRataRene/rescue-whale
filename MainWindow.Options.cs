@@ -12,8 +12,8 @@ public partial class MainWindow
 {
     sealed class AppOptions
     {
-        public string MouseIcon = "battery";   // battery, polling, off
-        public bool PadIcon = true;
+        public bool BatteryIcon = true;        // the mouse's battery percentage in the tray
+        public bool PollingIcon;               // the mouse's polling rate in the tray, as its own icon
         public int Alert;                      // battery level in percent for a notification, 0 for off
         public bool HideOnClose = true;
     }
@@ -38,8 +38,8 @@ public partial class MainWindow
         }
 
         _loading = true;
-        OptionRow(OptMouseIcon, "mouseicon", [("BATTERY", "battery"), ("POLLING", "polling"), ("OFF", "off")], _opt.MouseIcon, v => _opt.MouseIcon = v);
-        OptionRow(OptPadIcon, "padicon", [("ON", "on"), ("OFF", "off")], _opt.PadIcon ? "on" : "off", v => _opt.PadIcon = v == "on");
+        OptBatteryIcon.IsChecked = _opt.BatteryIcon;
+        OptPollingIcon.IsChecked = _opt.PollingIcon;
         OptionRow(OptAlert, "alert", [("OFF", "0"), ("15%", "15"), ("20%", "20"), ("30%", "30"), ("50%", "50")], _opt.Alert.ToString(), v => _opt.Alert = int.Parse(v));
         OptionRow(OptClose, "close", [("HIDE TO TRAY", "hide"), ("QUIT", "quit")], _opt.HideOnClose ? "hide" : "quit", v => _opt.HideOnClose = v == "hide");
         OptStartup.IsChecked = StartsWithWindows();
@@ -61,6 +61,14 @@ public partial class MainWindow
             };
             host.Children.Add(rb);
         }
+    }
+
+    void OptIcon_Click(object sender, RoutedEventArgs e)
+    {
+        _opt.BatteryIcon = OptBatteryIcon.IsChecked == true;
+        _opt.PollingIcon = OptPollingIcon.IsChecked == true;
+        SaveOptions();
+        UpdateTray();
     }
 
     void Options_Click(object sender, RoutedEventArgs e)
@@ -106,8 +114,10 @@ public partial class MainWindow
                 if (p.Length != 2) continue;
                 switch (p[0])
                 {
-                    case "mouseicon" when p[1] is "battery" or "polling" or "off": _opt.MouseIcon = p[1]; break;
-                    case "padicon": _opt.PadIcon = p[1] != "0"; break;
+                    case "batteryicon": _opt.BatteryIcon = p[1] != "0"; break;
+                    case "pollingicon": _opt.PollingIcon = p[1] != "0"; break;
+                    // the earlier one-or-the-other setting
+                    case "mouseicon": _opt.BatteryIcon = p[1] == "battery"; _opt.PollingIcon = p[1] == "polling"; break;
                     case "alert" when int.TryParse(p[1], out int a) && a is >= 0 and <= 100: _opt.Alert = a; break;
                     case "hideonclose": _opt.HideOnClose = p[1] != "0"; break;
                 }
@@ -123,8 +133,8 @@ public partial class MainWindow
             Directory.CreateDirectory(Path.GetDirectoryName(OptionsPath)!);
             File.WriteAllLines(OptionsPath,
             [
-                "mouseicon=" + _opt.MouseIcon,
-                "padicon=" + (_opt.PadIcon ? 1 : 0),
+                "batteryicon=" + (_opt.BatteryIcon ? 1 : 0),
+                "pollingicon=" + (_opt.PollingIcon ? 1 : 0),
                 "alert=" + _opt.Alert,
                 "hideonclose=" + (_opt.HideOnClose ? 1 : 0),
             ]);
