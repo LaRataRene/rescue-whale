@@ -30,8 +30,8 @@
             <TextBlock x:Name="StripText" DockPanel.Dock="Left" Text="rescue whale" FontSize="12" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="22,0,0,0"/>
             <!-- which device's page is showing -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="26,0,0,0" WindowChrome.IsHitTestVisibleInChrome="True">
-                <RadioButton x:Name="PageMouse" Style="{StaticResource PageTab}" Content="[ MOUSE ]" GroupName="page" Checked="Page_Checked"/>
-                <RadioButton x:Name="PageController" Style="{StaticResource PageTab}" Content="[ CONTROLLER ]" GroupName="page" Checked="Page_Checked"/>
+                <RadioButton x:Name="PageMouse" Style="{StaticResource PageTab}" Content="[ MOUSE: X8 ULTRA ]" GroupName="page" Checked="Page_Checked"/>
+                <RadioButton x:Name="PageController" Style="{StaticResource PageTab}" Content="[ CONTROLLER: XBOX ONE ]" GroupName="page" Checked="Page_Checked"/>
             </StackPanel>
         </DockPanel>
 

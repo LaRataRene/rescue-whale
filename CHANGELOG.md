@@ -6,7 +6,7 @@ All notable changes to Rescue Whale are listed here, newest first.
 
 ### Added
 
-- **Xbox controller page.** `[ MOUSE ]` and `[ CONTROLLER ]` tabs in the top strip switch between the two. The controller page has:
+- **Xbox controller page.** `[ MOUSE: X8 ULTRA ]` and `[ CONTROLLER: XBOX ONE ]` tabs in the top strip switch between the two. Each tab names the device type and the model it was built for. The controller page has:
   - a live tester that lights up each button, shows where both sticks are, and how far each trigger is pulled, with the raw readings underneath;
   - the connection and power state, shown in the status box and battery gauge at the top, which switch from the mouse to the controller while this page is open;
   - a vibration test with a strength for each motor;

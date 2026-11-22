@@ -516,6 +516,8 @@ public partial class MainWindow : Window
         // header: the battery and status box drop below the logo and title
         Grid.SetColumnSpan(TitlePanel, tall ? 3 : 1);
         TitleText.FontSize = tall ? 20 : 26;
+        // the two device tabs need the whole top strip in the narrow layout, so the version text steps aside there
+        StripText.Visibility = tall ? Visibility.Collapsed : Visibility.Visible;
         Grid.SetRow(BatteryWidget, tall ? 1 : 0);
         Grid.SetColumn(BatteryWidget, tall ? 0 : 2);
         BatteryWidget.HorizontalAlignment = tall ? HorizontalAlignment.Left : HorizontalAlignment.Stretch;
